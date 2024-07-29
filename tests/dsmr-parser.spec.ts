@@ -22,7 +22,7 @@ describe('DSMR Parser', async () => {
   });
   
   for (const testCase of testCases) {
-    it(`Should parse ${testCase}`, async () => {
+    it(`Parses ${testCase}`, async () => {
       const [input, output] = await Promise.all([
         fs.readFile(`./tests/telegrams/${testCase}.txt`, 'utf-8'),
         fs.readFile(`./tests/telegrams/${testCase}.json`, 'utf-8'),
@@ -30,9 +30,10 @@ describe('DSMR Parser', async () => {
 
       const expectedOutput = JSON.parse(output);
 
-      const parsed = DSMRParser({ telegram: input, newlineChars: 'lf' });
-
-      console.log(JSON.stringify(parsed, null, 2));
+      const parsed = DSMRParser({
+        telegram: input,
+        newLineChars: '\n',
+      });
 
       assert.deepStrictEqual(parsed, expectedOutput);
     });

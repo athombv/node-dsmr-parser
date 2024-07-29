@@ -1,16 +1,10 @@
-import { DSMR5Parser } from './parsers/dsmr.js';
-
 export type DSMRParserOptions = {
   /** Raw DSMR telegram */
   telegram: string;
   /** Decryption key to decrypt the telegram (Only for Luxembourg) */
   decryptionKey?: string;
-  /** Wether or not to check the CRC [default=true] */
-  checkCrc?: boolean;
-  /** Which parser to use */
-  parser?: keyof typeof PARSERS;
-  /** Which characters represent the newline */
-  newlineChars?: 'crlf' | 'lf';
+  /** New line characters */
+  newLineChars?: '\r\n' | '\n';
 };
 
 export type DSMRParserResult = {
@@ -74,30 +68,16 @@ export type DSMRParserResult = {
     };
   };
   mBus: Record<number, {
-    deviceType?: number;
+    deviceType?: number; // TODO: Parse to device type?
     equipmentId?: string;
     value?: number;
     unit?: string;
     timestamp?: string; // TODO: Parse to date object
   }>;
-  crc?: number;
+  crc?: {
+    value: number;
+    valid: boolean;
+  };
 };
 
-const PARSERS = {
-  'default': DSMR5Parser,
-} as const satisfies Record<string, (options: DSMRParserOptions) => DSMRParserResult>;
-
-/**
- * Parse a DSMR telegram and return the parsed data.
- */
-export const DSMRParser = (options: DSMRParserOptions) => {
-  options.checkCrc = options.checkCrc ?? true;
-  options.newlineChars = options.newlineChars ?? 'crlf';
-  const parser = options.parser ?? 'default';
-
-  if (!PARSERS[parser]) {
-    throw new Error(`Invalid DSMR parser: ${parser}`);
-  }
-
-  return PARSERS[parser](options);
-};
+export { DSMRParser } from './parsers/dsmr.js';

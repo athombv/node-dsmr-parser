@@ -1,0 +1,68 @@
+{
+  "header": {
+    "identifier": "\\T210-D ESMR5.0",
+    "xxx": "Ene",
+    "z": "5"
+  },
+  "metadata": {
+    "dsmrVersion": 5,
+    "timestamp": "210330192305S",
+    "equipmentId": "serienummer",
+    "events": {
+      "powerFailures": 220,
+      "longPowerFailures": 34,
+      "voltageSags": {
+        "l1": 24,
+        "l2": 24,
+        "l3": 24
+      },
+      "voltageSwells": {
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      }
+    },
+    "unknownLines": [
+      "1-0:99.97.0(9)(0-0:96.7.19)(190221201823W)(0000012287*s)(190221165316W)(0000066621*s)(190220173949W)(0000240199*s)(190217224923W)(0000009884*s)(190217200128W)(0000000813*s)(190217194527W)(0000005140*s)(190217181705W)(0000000266*s)(190217180549W)(0000331071*s)(190213220245W)(0000000230*s)",
+      "0-0:96.13.0()"
+    ]
+  },
+  "electricity": {
+    "tariff1": {
+      "received": 9.533,
+      "returned": 2248.911
+    },
+    "tariff2": {
+      "received": 14.154,
+      "returned": 5072.177
+    },
+    "currentTariff": 2,
+    "powerReturnedTotal": 0,
+    "powerReceivedTotal": 0.566,
+    "voltage": {
+      "l1": 226,
+      "l2": 227,
+      "l3": 226
+    },
+    "current": {
+      "l1": 4,
+      "l2": 4,
+      "l3": 4
+    },
+    "powerReturned": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 0
+    },
+    "powerReceived": {
+      "l1": 0.068,
+      "l2": 0.24,
+      "l3": 0.257
+    }
+  },
+  "mBus": {},
+  "crc": {
+    "value": 54685,
+    "valid": false
+  }
+}

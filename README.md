@@ -52,7 +52,7 @@ try {
       0-1:96.1.0(4730303732303033393634343938373139)
       0-1:24.2.1(240220171000W)(06362.120*m3)
       !B788`,
-    decryptionKey: '...', // Only for Luxembourgh
+    decryptionKey: '...', // Only for Luxembourg
   });
 
   console.log('Result:', result); // TODO: Add to this README

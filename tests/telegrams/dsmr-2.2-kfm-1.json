@@ -1,0 +1,38 @@
+{
+  "header": {
+    "identifier": " ZABF001587315111",
+    "xxx": "KMP",
+    "z": "5"
+  },
+  "metadata": {
+    "equipmentId": "205C4D246333034353537383234323121",
+    "unknownLines": [
+      "0-0:17.0.0(999*A)",
+      "0-0:96.3.10(1)",
+      "0-0:96.13.1()",
+      "0-0:96.13.0()",
+      "0-1:24.3.0(120517020000)(08)(60)(1)(0-1:24.2.1)(m3)",
+      "(00124.477)",
+      "0-1:24.4.0(1)"
+    ]
+  },
+  "electricity": {
+    "tariff1": {
+      "received": 185,
+      "returned": 13
+    },
+    "tariff2": {
+      "received": 84,
+      "returned": 19
+    },
+    "currentTariff": 1,
+    "powerReturnedTotal": 0.98,
+    "powerReceivedTotal": 0
+  },
+  "mBus": {
+    "1": {
+      "deviceType": 3,
+      "equipmentId": "3238313031453631373038389930337131"
+    }
+  }
+}
