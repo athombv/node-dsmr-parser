@@ -6,10 +6,8 @@
   },
   "metadata": {
     "equipmentId": "0123456789ABCDEF",
-    "unknownLines": [
-      "0-0:96.13.1()",
-      "0-0:96.13.0()"
-    ]
+    "numericMessage": 0,
+    "textMessage": ""
   },
   "electricity": {
     "tariff1": {

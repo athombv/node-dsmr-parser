@@ -22,7 +22,7 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
   {
     regex: /^0-0:96\.1\.1\((\w+)\)/,
     parser: (regexResult, result) => {
-      result.metadata.equipmentId = regexResult[1];
+      result.metadata.equipmentId = regexResult[1] ?? '';
     },
   },
   {
@@ -135,9 +135,16 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
     }
   },
   {
-    regex: /^0-0:96\.13\.0\((.+)\)/,
+    regex: /^0-0:96\.13\.0\((.+)?\)/,
     parser: (regexResult, result) => {
-      result.metadata.textMessage = regexResult[1];
+      result.metadata.textMessage = regexResult[1] ?? '';
+    }
+  },
+  {
+    regex: /^0-0:96\.13\.1\((\d)?\)/,
+    parser: (regexResult, result) => {
+      const numericMessage = parseInt(regexResult[1], 10);
+      result.metadata.numericMessage = Number.isNaN(numericMessage) ? 0 : numericMessage;
     }
   },
   {

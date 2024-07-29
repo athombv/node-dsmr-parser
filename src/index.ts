@@ -33,6 +33,7 @@ export type DSMRParserResult = {
     };
     unknownLines?: string[];
     textMessage?: string;
+    numericMessage?: number;
   };
   electricity: {
     tariff1?: {
