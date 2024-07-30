@@ -63,7 +63,7 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   }
 
   if (result.crc !== undefined) {
-    result.crc.valid = isCrcValid(options.telegram, result.crc.value, options);
+    result.crc.valid = isCrcValid(options.telegram, result.crc.value);
   }
 
   return result;

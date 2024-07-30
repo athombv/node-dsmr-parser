@@ -82,3 +82,4 @@ export type DSMRParserResult = {
 };
 
 export { DSMRParser } from './parsers/dsmr.js';
+export { DSMRStreamParser } from './parsers/stream.js';
