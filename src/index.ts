@@ -81,5 +81,7 @@ export type DSMRParserResult = {
   };
 };
 
+
+export { MBUS_DEVICE_IDS, getMbusDevice } from './parsers/mbus.js'
 export { DSMRParser } from './parsers/dsmr.js';
 export { DSMRStreamParser } from './parsers/stream.js';

@@ -2,7 +2,7 @@ import { DSMRParserOptions, DSMRParserResult } from '../index.js';
 
 export type COSEMDecoder = {
   regex: RegExp;
-  parser: (regexResult: RegExpExecArray, result: DSMRParserResult, options: DSMRParserOptions) => any;
+  parser: (regexResult: RegExpExecArray, result: DSMRParserResult, options: DSMRParserOptions) => void;
 };
 
 export const COSEM_PARSERS: COSEMDecoder[] = [

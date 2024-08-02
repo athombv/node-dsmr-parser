@@ -1,7 +1,8 @@
 import { promises as fs } from 'node:fs';
 import { before, describe, it } from 'node:test';
-import { DSMRParser } from '../src';
+import { DSMRParser, getMbusDevice } from '../src';
 import assert from 'node:assert';
+import { readTelegramFromFiles } from './test-utils';
 
 describe('DSMR Parser', async () => {
   const files = await fs.readdir('./tests/telegrams');
@@ -38,4 +39,15 @@ describe('DSMR Parser', async () => {
       assert.deepStrictEqual(parsed, expectedOutput);
     });
   }
+
+  it('Gets m-bus data', async () => {
+    const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
+
+    const parsed = DSMRParser({ telegram: input });
+
+    const mbusData = getMbusDevice('gas', parsed);
+    
+    assert.equal(mbusData?.deviceType, 0x03);
+    assert.equal(mbusData?.unit, 'm3');
+  });
 });
