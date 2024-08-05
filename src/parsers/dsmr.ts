@@ -2,6 +2,7 @@ import type { DSMRParserOptions, DSMRParserResult } from '../index.js';
 import { isCrcValid } from '../util/crc.js';
 import { decryptFrame } from '../util/encryption.js';
 import { DSMRParserError } from '../util/errors.js';
+import { DEFAULT_FRAME_ENCODING } from '../util/frame-validation.js';
 import { COSEM_PARSERS } from './cosem.js';
 
 const decodeCOSEMObject = (line: string, result: DSMRParserResult, options: DSMRParserOptions) => {
@@ -29,12 +30,12 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   if (typeof options.telegram === 'string') {
     telegram = options.telegram;
   } else if (typeof options.decryptionKey !== 'string') {
-    telegram = options.telegram.toString(options.encoding ?? 'ascii');
+    telegram = options.telegram.toString(options.encoding ?? DEFAULT_FRAME_ENCODING);
   } else {
     telegram = decryptFrame({
       data: options.telegram,
       key: options.decryptionKey,
-      encoding: options.encoding ?? 'ascii',
+      encoding: options.encoding ?? DEFAULT_FRAME_ENCODING,
     });
   }
 

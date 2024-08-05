@@ -1,5 +1,7 @@
 import { decodeHeader, ENCRYPTED_DSMR_TELEGRAM_SOF } from './encryption.js';
 
+export const DEFAULT_FRAME_ENCODING = 'ascii';
+
 /**
  * Check if a line contains only valid ascii characters. If this is not the case,
  * the line is either encrypted or contains invalid characters.

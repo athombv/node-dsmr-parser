@@ -1,4 +1,5 @@
 import { DSMRParserOptions } from '../index.js';
+import { DEFAULT_FRAME_ENCODING } from './frame-validation.js';
 
 /**
  * Calculate the CRC16 value of a buffer.
@@ -40,7 +41,7 @@ export const isCrcValid = (telegram: string, enteredCrc: number) => {
   const telegramParts = telegram.split(crcSplit);
   const strippedTelegram = telegramParts[0] + crcSplit;
 
-  const calculatedCrc = calculateCrc16(Buffer.from(strippedTelegram, 'ascii'));
+  const calculatedCrc = calculateCrc16(Buffer.from(strippedTelegram, DEFAULT_FRAME_ENCODING));
 
   return calculatedCrc === enteredCrc;
 };

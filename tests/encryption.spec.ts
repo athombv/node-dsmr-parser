@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import { encryptFrame, readTelegramFromFiles } from './test-utils';
 import { decodeFooter, decodeHeader, decryptFrame, decryptFrameContents, ENCRYPTED_DSMR_HEADER_LEN } from '../src/util/encryption';
 import { DSMRDecryptionError } from '../src';
+import { DEFAULT_FRAME_ENCODING } from '../src/util/frame-validation';
 
 describe('Encryption', async () => {
   const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
@@ -16,7 +17,7 @@ describe('Encryption', async () => {
     const decrypted = decryptFrame({
       data: encrypted,
       key: decryptionKey,
-      encoding: 'ascii',
+      encoding: DEFAULT_FRAME_ENCODING,
     });
 
     assert.deepStrictEqual(decrypted.toString(), input);
@@ -30,7 +31,7 @@ describe('Encryption', async () => {
       decryptFrame({
         data: encrypted,
         key: 'ABCDEF123467890',
-        encoding: 'ascii',
+        encoding: DEFAULT_FRAME_ENCODING,
       });
     }, DSMRDecryptionError);
   });

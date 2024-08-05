@@ -31,3 +31,10 @@ export class DSMRDecodeError extends DSMRError {
     this.name = 'DSMRDecodeError';
   }
 }
+
+export class DSMRStartOfFrameNotFoundError extends DSMRError {
+  constructor() {
+    super('Start of frame not found');
+    this.name = 'DSMRStartOfFrameNotFoundError';
+  }
+}
