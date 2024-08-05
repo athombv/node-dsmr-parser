@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { DSMRParser, getMbusDevice } from '../src';
 import assert from 'node:assert';
-import { getAllTestTelegramTestCases, readTelegramFromFiles } from './test-utils';
+import { encryptFrame, getAllTestTelegramTestCases, readTelegramFromFiles } from './test-utils';
 
 describe('DSMR Parser', async () => {
   const testCases = await getAllTestTelegramTestCases();
@@ -12,6 +12,20 @@ describe('DSMR Parser', async () => {
 
       const parsed = DSMRParser({
         telegram: input,
+      });
+
+      assert.deepStrictEqual(parsed, expectedOutput);
+    });
+
+    it(`Parses ${testCase} with decryption`, async () => {
+      const { input, output: expectedOutput } = await readTelegramFromFiles(`./tests/telegrams/${testCase}`);
+
+      const key = '0123456789ABCDEF';
+      const encrypted = encryptFrame({ frame: input, key });
+
+      const parsed = DSMRParser({
+        telegram: encrypted,
+        decryptionKey: key,
       });
 
       assert.deepStrictEqual(parsed, expectedOutput);

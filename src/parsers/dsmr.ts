@@ -1,5 +1,6 @@
 import type { DSMRParserOptions, DSMRParserResult } from '../index.js';
 import { isCrcValid } from '../util/crc.js';
+import { decryptFrame } from '../util/encryption.js';
 import { DSMRParserError } from '../util/errors.js';
 import { COSEM_PARSERS } from './cosem.js';
 
@@ -22,8 +23,22 @@ const decodeCOSEMObject = (line: string, result: DSMRParserResult, options: DSMR
  */
 export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   options.newLineChars = options.newLineChars ?? '\r\n';
-  
-  const lines = options.telegram.split(options.newLineChars);
+
+  let telegram: string
+
+  if (typeof options.telegram === 'string') {
+    telegram = options.telegram;
+  } else if (typeof options.decryptionKey !== 'string') {
+    telegram = options.telegram.toString(options.encoding ?? 'ascii');
+  } else {
+    telegram = decryptFrame({
+      data: options.telegram,
+      key: options.decryptionKey,
+      encoding: options.encoding ?? 'ascii',
+    });
+  }
+
+  const lines = telegram.split(options.newLineChars);
 
   const result: DSMRParserResult = {
     header: {
@@ -64,7 +79,7 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   }
 
   if (result.crc !== undefined) {
-    result.crc.valid = isCrcValid(options.telegram, result.crc.value);
+    result.crc.valid = isCrcValid(telegram, result.crc.value);
   }
 
   if (result.header.identifier === '' || result.header.xxx === '' || result.header.z === '') {

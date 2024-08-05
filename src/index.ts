@@ -1,8 +1,17 @@
 export type DSMRParserOptions = {
   /** Raw DSMR telegram */
   telegram: string;
-  /** Decryption key to decrypt the telegram (Only for Luxembourg) */
+  /** New line characters */
+  newLineChars?: '\r\n' | '\n';
+  decryptionKey?: never;
+  encoding?: never;
+} | {
+  /** Encrypted DSMR telegram */
+  telegram: Buffer;
+  /** Decryption key */
   decryptionKey?: string;
+  /** Encoding of the data in the buffer, defaults to ascii */
+  encoding?: BufferEncoding;
   /** New line characters */
   newLineChars?: '\r\n' | '\n';
 };

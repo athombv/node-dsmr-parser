@@ -43,10 +43,11 @@ export const EncryptedDsmrStreamParser = (stream: Readable, options: Omit<DSMRPa
         header,
         footer,
         key: options.decryptionKey ?? '',
+        encoding: options.encoding ?? 'ascii',
       });
       const result = DSMRParser({
-        telegram: decrypted.toString(),
-        ...options,
+        telegram: decrypted,
+        newLineChars: options.newLineChars,
       });
 
       callback(null, result);
@@ -104,7 +105,7 @@ export const DefaultDSMRStreamParser = (stream: Readable, options: Omit<DSMRPars
     try {
       const result = DSMRParser({
         telegram: telegram.slice(0, endOfFrameIndex),
-        ...options,
+        newLineChars: options.newLineChars,
       });
 
       callback(null, result);

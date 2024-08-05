@@ -88,6 +88,7 @@ export const decryptFrameContents = ({
   header,
   footer,
   key,
+  encoding,
 }: {
   /** The encrypted DSMR frame */
   data: Buffer;
@@ -97,6 +98,7 @@ export const decryptFrameContents = ({
   footer: ReturnType<typeof decodeFooter>;
   /** The encryption key */
   key: string;
+  encoding: BufferEncoding,
 }) => {
   if (data.length !== (header.contentLength - ENCRYPTED_DSMR_HEADER_LEN)) {
     throw new Error(`Invalid frame length got ${data.length} expected ${header.contentLength - ENCRYPTED_DSMR_HEADER_LEN}`);
@@ -111,7 +113,7 @@ export const decryptFrameContents = ({
     });
     cipher.setAuthTag(footer.gcmTag);
     
-    return cipher.update(data, undefined, 'ascii') + cipher.final('ascii');
+    return cipher.update(data, undefined, encoding) + cipher.final(encoding);
   } catch (error) {
     throw new DSMRDecryptionError(error);
   }
@@ -120,9 +122,17 @@ export const decryptFrameContents = ({
 /**
  * Decrypts a full encrypted DSMR frame
  */
-export const decryptFrame = (data: Buffer, key: string) => {
+export const decryptFrame = ({
+  data,
+  key,
+  encoding,
+}: {
+  data: Buffer,
+  key: string,
+  encoding: BufferEncoding
+}) => {
   const header = decodeHeader(data);
   const footer = decodeFooter(data, header);
   const content = data.subarray(ENCRYPTED_DSMR_HEADER_LEN, header.contentLength);
-  return decryptFrameContents({ data: content, header, footer, key });
+  return decryptFrameContents({ data: content, header, footer, key, encoding });
 }

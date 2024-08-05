@@ -13,7 +13,11 @@ describe('Encryption', async () => {
     const decryptionKey = '0123456789ABCDEF';
     const encrypted = encryptFrame({ frame: input, key: decryptionKey });
 
-    const decrypted = decryptFrame(encrypted, decryptionKey);
+    const decrypted = decryptFrame({
+      data: encrypted,
+      key: decryptionKey,
+      encoding: 'ascii',
+    });
 
     assert.deepStrictEqual(decrypted.toString(), input);
   });
@@ -23,7 +27,11 @@ describe('Encryption', async () => {
     const encrypted = encryptFrame({ frame: input, key: decryptionKey });
 
     assert.throws(() => {
-      decryptFrame(encrypted, 'ABCDEF01234567891');
+      decryptFrame({
+        data: encrypted,
+        key: 'ABCDEF123467890',
+        encoding: 'ascii',
+      });
     }, DSMRDecryptionError);
   });
 });
