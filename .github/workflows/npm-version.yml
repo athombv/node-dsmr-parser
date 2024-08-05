@@ -1,0 +1,11 @@
+name: Update Package Version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-package-version:
+    name: Update Package Version
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Placeholder"
