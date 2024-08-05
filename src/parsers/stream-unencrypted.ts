@@ -1,11 +1,14 @@
 import { Readable } from 'stream';
-import { DSMRStreamCallback, DSMRStreamParser, DSMRStreamParserOptions } from './stream-encrypted.js';
+import {
+  DSMRStreamCallback,
+  DSMRStreamParser,
+  DSMRStreamParserOptions,
+} from './stream-encrypted.js';
 import { DSMRParser } from './dsmr.js';
 import { DEFAULT_FRAME_ENCODING } from '../util/frame-validation.js';
 import { DSMRStartOfFrameNotFoundError } from '../util/errors.js';
 
 export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
-
   private telegram = '';
   private hasStartOfFrame = false;
   private eofRegex: RegExp;
@@ -19,9 +22,8 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
 
     // End of frame is \r\n!<CRC>\r\n with the CRC being optional as
     // it is only for DSMR 4 and up.
-    this.eofRegex = options.newLineChars === '\n'
-      ? /\n!([0-9A-Fa-f]+)?\n/
-      : /\r\n!([0-9A-Fa-f]+)?\r\n/;
+    this.eofRegex =
+      options.newLineChars === '\n' ? /\n!([0-9A-Fa-f]+)?\n/ : /\r\n!([0-9A-Fa-f]+)?\r\n/;
   }
 
   private onData(dataRaw: Buffer) {
@@ -29,12 +31,12 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
 
     if (!this.hasStartOfFrame) {
       const sofIndex = data.indexOf('/');
-      
+
       // Not yet a valid frame. Discard the data
       if (sofIndex === -1) {
         this.callback(new DSMRStartOfFrameNotFoundError(), undefined);
         return;
-      };
+      }
 
       this.telegram = data.slice(sofIndex, data.length);
       this.hasStartOfFrame = true;
@@ -71,7 +73,7 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
   }
 
   destroy() {
-    this.stream.removeListener('data', this.onData);
+    this.stream.removeListener('data', this.onData.bind(this));
   }
 
   clear() {
@@ -82,5 +84,4 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
   currentSize() {
     return this.telegram.length;
   }
-  
 }

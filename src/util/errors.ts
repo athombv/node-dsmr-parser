@@ -1,6 +1,4 @@
-export class DSMRError extends Error {
-
-}
+export class DSMRError extends Error {}
 
 export class DSMRParserError extends DSMRError {
   constructor(message: string) {
@@ -11,14 +9,13 @@ export class DSMRParserError extends DSMRError {
 
 export class DSMRDecryptionError extends DSMRError {
   constructor(originalError: unknown) {
-    super('DSMR decryption failed: ');
+    super('DSMR decryption failed', { cause: originalError });
     this.name = 'DSMRDecryptionError';
 
     if (typeof originalError === 'string') {
       this.message += originalError;
     } else if (originalError instanceof Error) {
       this.message += originalError.message;
-
     } else {
       this.message += `Unknown error (${String(originalError)})`;
     }

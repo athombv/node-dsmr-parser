@@ -1,20 +1,27 @@
-export type DSMRParserOptions = {
-  /** Raw DSMR telegram */
-  telegram: string;
-  /** New line characters */
-  newLineChars?: '\r\n' | '\n';
-  decryptionKey?: never;
-  encoding?: never;
-} | {
-  /** Encrypted DSMR telegram */
-  telegram: Buffer;
-  /** Decryption key */
-  decryptionKey?: string;
-  /** Encoding of the data in the buffer, defaults to ascii */
-  encoding?: BufferEncoding;
-  /** New line characters */
-  newLineChars?: '\r\n' | '\n';
-};
+import { DSMRParser } from './parsers/dsmr.js';
+import { getMbusDevice, MBUS_DEVICE_IDS } from './parsers/mbus.js';
+import { DSMRStreamParser } from './parsers/stream.js';
+import { DSMRFrameValid } from './util/frame-validation.js';
+
+export type DSMRParserOptions =
+  | {
+      /** Raw DSMR telegram */
+      telegram: string;
+      /** New line characters */
+      newLineChars?: '\r\n' | '\n';
+      decryptionKey?: never;
+      encoding?: never;
+    }
+  | {
+      /** Encrypted DSMR telegram */
+      telegram: Buffer;
+      /** Decryption key */
+      decryptionKey?: string;
+      /** Encoding of the data in the buffer, defaults to ascii */
+      encoding?: BufferEncoding;
+      /** New line characters */
+      newLineChars?: '\r\n' | '\n';
+    };
 
 export type DSMRParserResult = {
   header: {
@@ -77,22 +84,28 @@ export type DSMRParserResult = {
       l3?: number;
     };
   };
-  mBus: Record<number, {
-    deviceType?: number; // TODO: Parse to device type?
-    equipmentId?: string;
-    value?: number;
-    unit?: string;
-    timestamp?: string; // TODO: Parse to date object
-  }>;
+  mBus: Record<
+    number,
+    {
+      deviceType?: number; // TODO: Parse to device type?
+      equipmentId?: string;
+      value?: number;
+      unit?: string;
+      timestamp?: string; // TODO: Parse to date object
+    }
+  >;
   crc?: {
     value: number;
     valid: boolean;
   };
 };
 
-
-export { MBUS_DEVICE_IDS, getMbusDevice } from './parsers/mbus.js'
-export { DSMRParser } from './parsers/dsmr.js';
-export { DSMRStreamParser } from './parsers/stream.js';
-export { DSMRFrameValid } from './util/frame-validation.js';
 export * from './util/errors.js';
+
+export const DSMR = {
+  parse: DSMRParser,
+  parseFromStream: DSMRStreamParser,
+  isValidFrame: DSMRFrameValid,
+  MBUS_DEVICE_IDS,
+  getMbusDevice,
+} as const;

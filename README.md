@@ -11,10 +11,10 @@ $ npm i @athombv/dsmr-parser
 ## Example
 
 ```javascript
-import { DSMRParser } from '@athombv/dsmr-parser';
+import { DSMR } from '@athombv/dsmr-parser';
 
 try {
-  const result = DSMRParser.parse({
+  const result = DSMR.parse({
     telegram: `/ISk5\2MT382-1000
 
 1-3:0.2.8(50)
@@ -58,12 +58,13 @@ try {
   });
 
   console.log('Result:', result);
-} catch(err) {
+} catch (err) {
   console.error(`Error Parsing DSMR Telegram: ${err.message}`);
 }
 ```
 
 Will result in the following log:
+
 ```log
 Result: {
   header: { identifier: '\\2MT382-1000r', xxx: 'ISk', z: '5' },

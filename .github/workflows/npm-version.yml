@@ -25,10 +25,10 @@ jobs:
     name: Update Package Version
     runs-on: buildjet-2vcpu-ubuntu-2204-arm
     steps:
-      - name: Don't allow version bumps on master
-        if: github.ref == 'refs/heads/master'
+      - name: Don't allow version bumps on production
+        if: github.ref == 'refs/heads/production'
         run: |
-          echo "NPM Version Bump should not be executed on the master branch."
+          echo "NPM Version Bump should not be executed on the production branch."
           exit 1
 
       - name: Require version or version bump input

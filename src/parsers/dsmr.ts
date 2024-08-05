@@ -16,16 +16,17 @@ const decodeCOSEMObject = (line: string, result: DSMRParserResult, options: DSMR
   }
 
   return false;
-}
+};
 
 /**
  * Parse a DSMR telegram into a structured object.
+ *
  * @throws If CRC validation fails
  */
 export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   options.newLineChars = options.newLineChars ?? '\r\n';
 
-  let telegram: string
+  let telegram: string;
 
   if (typeof options.telegram === 'string') {
     telegram = options.telegram;
@@ -70,7 +71,7 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
       // skip empty lines
     } else {
       // Decode cosem object
-      const isLineParsed = decodeCOSEMObject(line, result, options)
+      const isLineParsed = decodeCOSEMObject(line, result, options);
 
       if (!isLineParsed) {
         result.metadata.unknownLines = result.metadata.unknownLines ?? [];
@@ -92,4 +93,4 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   }
 
   return result;
-}
+};

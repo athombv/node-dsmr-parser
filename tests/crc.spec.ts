@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { calculateCrc16, isCrcValid } from '../src/util/crc';
+import { calculateCrc16, isCrcValid } from '../src/util/crc.js';
 
 describe('CRC', () => {
   describe('CRC16', () => {
@@ -8,28 +8,28 @@ describe('CRC', () => {
     const CRC_TESTS = [
       {
         input: 'Hello, world!',
-        output: 0x9A4A
+        output: 0x9a4a,
       },
       {
         input: '',
-        output: 0x0000
+        output: 0x0000,
       },
       {
         input: '123456789',
-        output: 0xBB3D
+        output: 0xbb3d,
       },
       {
         input: 'The quick brown fox jumps over the lazy dog',
-        output: 0xFCDF
+        output: 0xfcdf,
       },
       {
         input: 'Lorem ipsum dolor sit amet',
-        output: 0xC14F
+        output: 0xc14f,
       },
     ];
-  
+
     for (const test of CRC_TESTS) {
-      it (`Calculates the CRC of "${test.input}"`, () => {
+      it(`Calculates the CRC of "${test.input}"`, () => {
         const buf = Buffer.from(test.input);
         const crc = calculateCrc16(buf);
         assert.equal(crc, test.output);

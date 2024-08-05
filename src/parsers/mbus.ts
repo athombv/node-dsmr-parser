@@ -6,7 +6,10 @@ export const MBUS_DEVICE_IDS = {
   water: 0x07,
 } as const;
 
-export const getMbusDevice = (deviceId: number | keyof typeof MBUS_DEVICE_IDS, parsedData: DSMRParserResult) => {
+export const getMbusDevice = (
+  deviceId: number | keyof typeof MBUS_DEVICE_IDS,
+  parsedData: DSMRParserResult,
+) => {
   const id = typeof deviceId === 'number' ? deviceId : MBUS_DEVICE_IDS[deviceId];
 
   for (const [mBusId, data] of Object.entries(parsedData.mBus)) {
