@@ -1,5 +1,6 @@
 import type { DSMRParserOptions, DSMRParserResult } from '../index.js';
 import { isCrcValid } from '../util/crc.js';
+import { DSMRParserError } from '../util/errors.js';
 import { COSEM_PARSERS } from './cosem.js';
 
 const decodeCOSEMObject = (line: string, result: DSMRParserResult, options: DSMRParserOptions) => {
@@ -64,6 +65,10 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
 
   if (result.crc !== undefined) {
     result.crc.valid = isCrcValid(options.telegram, result.crc.value);
+  }
+
+  if (result.header.identifier === '' || result.header.xxx === '' || result.header.z === '') {
+    throw new DSMRParserError('Invalid telegram. Missing header');
   }
 
   return result;
