@@ -1,0 +1,72 @@
+{
+  "header": {
+    "identifier": "KAIFA-METER",
+    "xxx": "KFM",
+    "z": "5"
+  },
+  "metadata": {
+    "dsmrVersion": 4.2,
+    "timestamp": "180306123056W",
+    "equipmentId": "4530303033303030303032313234383133",
+    "events": {
+      "powerFailures": 13,
+      "longPowerFailures": 7,
+      "voltageSags": {
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "voltageSwells": {
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      }
+    },
+    "unknownLines": [
+      "1-0:99.97.0(1)(0-0:96.7.19)(000101000024W)(2147483647*s)"
+    ],
+    "numericMessage": 0,
+    "textMessage": ""
+  },
+  "electricity": {
+    "tariff1": {
+      "received": 4726.494,
+      "returned": 3284.32
+    },
+    "tariff2": {
+      "received": 4844.281,
+      "returned": 7764.691
+    },
+    "currentTariff": 2,
+    "powerReturnedTotal": 0,
+    "powerReceivedTotal": 1.869,
+    "current": {
+      "l1": 3,
+      "l2": 3,
+      "l3": 2
+    },
+    "powerReturned": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 0
+    },
+    "powerReceived": {
+      "l1": 0.688,
+      "l2": 0.778,
+      "l3": 0.403
+    }
+  },
+  "mBus": {
+    "1": {
+      "deviceType": 3,
+      "equipmentId": "4730303136353631323033353830313133",
+      "timestamp": "180306120000W",
+      "value": 5359.919,
+      "unit": "m3"
+    }
+  },
+  "crc": {
+    "value": 42807,
+    "valid": true
+  }
+}

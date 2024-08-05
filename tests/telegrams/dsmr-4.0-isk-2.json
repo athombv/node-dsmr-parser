@@ -1,0 +1,47 @@
+{
+  "header": {
+    "identifier": "LGBBFFB231216240",
+    "xxx": "XMX",
+    "z": "5"
+  },
+  "metadata": {
+    "dsmrVersion": 4,
+    "timestamp": "000101010000W",
+    "equipmentId": "4530303034303031353931303932323134",
+    "unknownLines": [
+      "0-0:17.0.0(999.9*kW)",
+      "0-0:96.3.10(1)",
+      "1-0:99.97.0(0)(0-0:96.7.19)"
+    ],
+    "events": {
+      "powerFailures": 23,
+      "longPowerFailures": 0,
+      "voltageSags": {
+        "l1": 0
+      },
+      "voltageSwells": {
+        "l1": 0
+      }
+    },
+    "numericMessage": 0,
+    "textMessage": ""
+  },
+  "electricity": {
+    "tariff1": {
+      "received": 1990.002,
+      "returned": 0
+    },
+    "tariff2": {
+      "received": 0,
+      "returned": 0
+    },
+    "currentTariff": 1,
+    "powerReturnedTotal": 0,
+    "powerReceivedTotal": 0
+  },
+  "mBus": {},
+  "crc": {
+    "value": 20354,
+    "valid": true
+  }
+}

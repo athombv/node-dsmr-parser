@@ -1,0 +1,76 @@
+{
+  "header": {
+    "identifier": "\\2M550T-1011",
+    "xxx": "ISK",
+    "z": "5"
+  },
+  "metadata": {
+    "dsmrVersion": 5,
+    "timestamp": "181106140429W",
+    "equipmentId": "4530303334303036383130353136343136",
+    "events": {
+      "powerFailures": 6,
+      "longPowerFailures": 3,
+      "voltageSags": {
+        "l1": 3,
+        "l2": 2,
+        "l3": 2
+      },
+      "voltageSwells": {
+        "l1": 1,
+        "l2": 1,
+        "l3": 1
+      }
+    },
+    "unknownLines": [
+      "1-0:99.97.0(1)(0-0:96.7.19)(180529135630S)(0000002451*s)"
+    ],
+    "textMessage": ""
+  },
+  "electricity": {
+    "tariff1": {
+      "received": 3808.351,
+      "returned": 1285.951
+    },
+    "tariff2": {
+      "received": 2948.827,
+      "returned": 2876.514
+    },
+    "currentTariff": 2,
+    "powerReturnedTotal": 0,
+    "powerReceivedTotal": 0.498,
+    "voltage": {
+      "l1": 236,
+      "l2": 232.6,
+      "l3": 235.1
+    },
+    "current": {
+      "l1": 2,
+      "l2": 0,
+      "l3": 0
+    },
+    "powerReturned": {
+      "l1": 0,
+      "l2": 0.033,
+      "l3": 0.132
+    },
+    "powerReceived": {
+      "l1": 0.676,
+      "l2": 0,
+      "l3": 0
+    }
+  },
+  "mBus": {
+    "1": {
+      "deviceType": 3,
+      "equipmentId": "4730303339303031373030343630313137",
+      "timestamp": "181106140010W",
+      "value": 1569.646,
+      "unit": "m3"
+    }
+  },
+  "crc": {
+    "value": 7976,
+    "valid": true
+  }
+}

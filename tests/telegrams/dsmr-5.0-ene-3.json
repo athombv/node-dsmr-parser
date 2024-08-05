@@ -1,0 +1,76 @@
+{
+  "header": {
+    "identifier": "\\T211 ESMR 5.0",
+    "xxx": "Ene",
+    "z": "5"
+  },
+  "metadata": {
+    "dsmrVersion": 5,
+    "timestamp": "240220170958W",
+    "equipmentId": "4530303632303030303134353236323233",
+    "events": {
+      "powerFailures": 10,
+      "longPowerFailures": 3,
+      "voltageSags": {
+        "l1": 1,
+        "l2": 1,
+        "l3": 1
+      },
+      "voltageSwells": {
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      }
+    },
+    "unknownLines": [
+      "1-0:99.97.0(0)(0-0:96.7.19)",
+      "1-0:42.1.0(00.000*kW)"
+    ],
+    "textMessage": ""
+  },
+  "electricity": {
+    "tariff1": {
+      "received": 565.971,
+      "returned": 6.754
+    },
+    "tariff2": {
+      "received": 694.269,
+      "returned": 7.849
+    },
+    "currentTariff": 2,
+    "powerReturnedTotal": 0.723,
+    "powerReceivedTotal": 0,
+    "voltage": {
+      "l1": 226,
+      "l2": 225,
+      "l3": 226
+    },
+    "current": {
+      "l1": 3,
+      "l2": 0,
+      "l3": 0
+    },
+    "powerReturned": {
+      "l1": 0.654,
+      "l2": 0.069,
+      "l3": 0
+    },
+    "powerReceived": {
+      "l2": 0,
+      "l3": 0
+    }
+  },
+  "mBus": {
+    "1": {
+      "deviceType": 3,
+      "equipmentId": "4730303732303033393634343938373139",
+      "timestamp": "240220171000W",
+      "value": 6362.12,
+      "unit": "m3"
+    }
+  },
+  "crc": {
+    "value": 46984,
+    "valid": false
+  }
+}

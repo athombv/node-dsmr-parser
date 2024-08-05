@@ -2,10 +2,31 @@ name: Build
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
+      - develop
+      - production
+      - testing
+  pull_request:
 
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: buildjet-2vcpu-ubuntu-2204-arm
     steps:
-      - run: echo "Placeholder"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Build
+        run: |
+          npm ci --audit=false
+          npm run build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}

@@ -1,0 +1,26 @@
+{
+  "header": {
+    "identifier": "XMXABCE000012345",
+    "xxx": "XMX",
+    "z": "5"
+  },
+  "metadata": {
+    "equipmentId": "0123456789ABCDEF",
+    "numericMessage": 0,
+    "textMessage": ""
+  },
+  "electricity": {
+    "tariff1": {
+      "received": 11667.44,
+      "returned": 0
+    },
+    "tariff2": {
+      "received": 11781.558,
+      "returned": 0
+    },
+    "currentTariff": 1,
+    "powerReturnedTotal": 0.55,
+    "powerReceivedTotal": 0
+  },
+  "mBus": {}
+}

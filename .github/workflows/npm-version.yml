@@ -2,10 +2,62 @@ name: Update Package Version
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: Set version (e.g. 1.2.3, or 1.0.0-rc.1).
+      version_bump:
+        type: choice
+        description: Or choose an automatic version bump.
+        default: none
+        options:
+          - major
+          - minor
+          - patch
+          - premajor
+          - preminor
+          - prepatch
+          - prerelease
+          - none
 
 jobs:
   update-package-version:
     name: Update Package Version
-    runs-on: ubuntu-latest
+    runs-on: buildjet-2vcpu-ubuntu-2204-arm
     steps:
-      - run: echo "Placeholder"
+      - name: Don't allow version bumps on master
+        if: github.ref == 'refs/heads/master'
+        run: |
+          echo "NPM Version Bump should not be executed on the master branch."
+          exit 1
+
+      - name: Require version or version bump input
+        if: (github.event.inputs.version == '' && github.event.inputs.version_bump == 'none') || (github.event.inputs.version != '' && github.event.inputs.version_bump != 'none')
+        run: |
+          echo "Either version, or version bump (not none) must be provided but not both."
+          exit 1
+
+      - name: Checkout git repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Set up HomeyGithubActionsBot git user
+        run: |
+          git config --local user.email "sysadmin+githubactions@athom.com"
+          git config --local user.name "Homey Github Actions Bot"
+
+      - name: Set version
+        if: github.event.inputs.version != ''
+        run: npm version ${{ github.event.inputs.version }}
+
+      - name: Automatic version bump
+        if: github.event.inputs.version_bump != 'none'
+        run: npm version ${{ github.event.inputs.version_bump }}
+
+      - name: Push Version
+        run: git push --follow-tags
