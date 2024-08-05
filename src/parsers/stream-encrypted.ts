@@ -54,9 +54,14 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
       this.telegram = Buffer.concat([this.telegram, data]);
     }
 
-    // TODO: THis can throw!
     if (this.header === undefined && this.telegram.length >= ENCRYPTED_DSMR_HEADER_LEN) {
-      this.header = decodeHeader(this.telegram);
+      try {
+        this.header = decodeHeader(this.telegram);
+      } catch (error) {
+        this.clear();
+        this.callback(error, undefined);
+        return;
+      }
     }
 
     // Wait for more data to decode the header
