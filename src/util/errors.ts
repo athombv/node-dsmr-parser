@@ -9,7 +9,7 @@ export class DSMRParserError extends DSMRError {
 
 export class DSMRDecryptionError extends DSMRError {
   constructor(originalError: unknown) {
-    super('DSMR decryption failed: ');
+    super('DSMR decryption failed', { cause: originalError });
     this.name = 'DSMRDecryptionError';
 
     if (typeof originalError === 'string') {
