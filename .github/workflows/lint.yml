@@ -2,10 +2,16 @@ name: Lint
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
+      - develop
+      - production
+      - testing
+  pull_request:
 
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Placeholder"
+    uses: athombv/athom-github-workflow/.github/workflows/lint.yml@master
+    secrets: inherit

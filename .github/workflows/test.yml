@@ -2,10 +2,17 @@ name: Test
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
+      - develop
+      - production
+      - testing
+  pull_request:
+
 
 jobs:
   test:
     name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Placeholder"
+    uses: athombv/athom-github-workflow/.github/workflows/test.yml@master
+    secrets: inherit
