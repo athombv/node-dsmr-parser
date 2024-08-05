@@ -2,7 +2,7 @@ import assert from 'assert';
 import { PassThrough } from 'node:stream';
 import { describe, it, mock } from 'node:test';
 import { chunkBuffer, chunkString, encryptFrame, readTelegramFromFiles } from './test-utils.js';
-import { DSMRStartOfFrameNotFoundError, DSMRStreamParser } from '../src/index.js';
+import { DSMRStartOfFrameNotFoundError, DSMR } from '../src/index.js';
 
 describe('DSMRStreamParser', () => {
   describe('Unencrypted', () => {
@@ -16,7 +16,7 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(stream, {}, callbackMock);
+      const instance = DSMR.parseFromStream(stream, {}, callbackMock);
 
       for (const chunk of chunks) {
         stream.write(chunk);
@@ -40,7 +40,7 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(stream, {}, callbackMock);
+      const instance = DSMR.parseFromStream(stream, {}, callbackMock);
 
       stream.write(input1 + input2);
 
@@ -58,7 +58,7 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(stream, {}, callbackMock);
+      const instance = DSMR.parseFromStream(stream, {}, callbackMock);
 
       stream.write('invalid telegram');
 
@@ -81,7 +81,7 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(stream, { newLineChars: '\n' }, callbackMock);
+      const instance = DSMR.parseFromStream(stream, { newLineChars: '\n' }, callbackMock);
       stream.write(input);
 
       stream.end();
@@ -105,7 +105,7 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(stream, { decryptionKey }, callbackMock);
+      const instance = DSMR.parseFromStream(stream, { decryptionKey }, callbackMock);
 
       for (const chunk of chunks) {
         stream.write(chunk);
@@ -133,7 +133,7 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(stream, { decryptionKey }, callbackMock);
+      const instance = DSMR.parseFromStream(stream, { decryptionKey }, callbackMock);
 
       stream.write(Buffer.concat([encrypted1, encrypted2]));
 
@@ -151,7 +151,7 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(
+      const instance = DSMR.parseFromStream(
         stream,
         { decryptionKey: '0123456789ABCDEF' },
         callbackMock,
@@ -181,7 +181,7 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(
+      const instance = DSMR.parseFromStream(
         stream,
         { newLineChars: '\n', decryptionKey },
         callbackMock,

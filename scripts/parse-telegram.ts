@@ -3,7 +3,7 @@
  */
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { DSMRParser } from '../src/index.js';
+import { DSMR } from '../src/index.js';
 
 const filePath = process.argv[2];
 
@@ -16,7 +16,7 @@ const resolvedPath = path.resolve(process.cwd(), filePath);
 
 const file = await fs.readFile(resolvedPath, 'utf-8');
 
-const parsed = DSMRParser({ telegram: file, newLineChars: '\r\n' });
+const parsed = DSMR.parse({ telegram: file, newLineChars: '\r\n' });
 
 console.log(JSON.stringify(parsed, null, 2));
 

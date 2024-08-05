@@ -1,10 +1,5 @@
 import { Readable } from 'node:stream';
-import {
-  DSMRParser,
-  DSMRStartOfFrameNotFoundError,
-  type DSMRParserOptions,
-  type DSMRParserResult,
-} from '../index.js';
+import type { DSMRParserOptions, DSMRParserResult } from '../index.js';
 import {
   decodeFooter,
   decodeHeader,
@@ -14,6 +9,8 @@ import {
   ENCRYPTED_DSMR_TELEGRAM_SOF,
 } from '../util/encryption.js';
 import { DEFAULT_FRAME_ENCODING } from '../util/frame-validation.js';
+import { DSMRParser } from './dsmr.js';
+import { DSMRStartOfFrameNotFoundError } from '../util/errors.js';
 
 export type DSMRStreamParser = {
   /** Stop the stream parser. */

@@ -11,10 +11,10 @@ $ npm i @athombv/dsmr-parser
 ## Example
 
 ```javascript
-import { DSMRParser } from '@athombv/dsmr-parser';
+import { DSMR } from '@athombv/dsmr-parser';
 
 try {
-  const result = DSMRParser.parse({
+  const result = DSMR.parse({
     telegram: `/ISk5\2MT382-1000
 
 1-3:0.2.8(50)

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
-import { DSMRParser, getMbusDevice } from '../src/index.js';
 import assert from 'node:assert';
+import { DSMR } from '../src/index.js';
 import { encryptFrame, getAllTestTelegramTestCases, readTelegramFromFiles } from './test-utils.js';
 
 describe('DSMR Parser', async () => {
@@ -12,7 +12,7 @@ describe('DSMR Parser', async () => {
         `./tests/telegrams/${testCase}`,
       );
 
-      const parsed = DSMRParser({
+      const parsed = DSMR.parse({
         telegram: input,
       });
 
@@ -27,7 +27,7 @@ describe('DSMR Parser', async () => {
       const key = '0123456789ABCDEF';
       const encrypted = encryptFrame({ frame: input, key });
 
-      const parsed = DSMRParser({
+      const parsed = DSMR.parse({
         telegram: encrypted,
         decryptionKey: key,
       });
@@ -39,9 +39,9 @@ describe('DSMR Parser', async () => {
   it('Gets m-bus data', async () => {
     const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
 
-    const parsed = DSMRParser({ telegram: input });
+    const parsed = DSMR.parse({ telegram: input });
 
-    const mbusData = getMbusDevice('gas', parsed);
+    const mbusData = DSMR.getMbusDevice('gas', parsed);
 
     assert.equal(mbusData?.deviceType, 0x03);
     assert.equal(mbusData?.unit, 'm3');
@@ -51,7 +51,7 @@ describe('DSMR Parser', async () => {
     const input = "Hello, world! I'm not a valid telegram.";
 
     assert.throws(() => {
-      DSMRParser({ telegram: input });
+      DSMR.parse({ telegram: input });
     });
   });
 
@@ -63,7 +63,7 @@ describe('DSMR Parser', async () => {
       false,
     );
 
-    const parsed = DSMRParser({
+    const parsed = DSMR.parse({
       telegram: input,
       newLineChars: '\n',
     });

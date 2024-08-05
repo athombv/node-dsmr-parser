@@ -1,3 +1,8 @@
+import { DSMRParser } from './parsers/dsmr.js';
+import { getMbusDevice, MBUS_DEVICE_IDS } from './parsers/mbus.js';
+import { DSMRStreamParser } from './parsers/stream.js';
+import { DSMRFrameValid } from './util/frame-validation.js';
+
 export type DSMRParserOptions =
   | {
       /** Raw DSMR telegram */
@@ -95,8 +100,12 @@ export type DSMRParserResult = {
   };
 };
 
-export { MBUS_DEVICE_IDS, getMbusDevice } from './parsers/mbus.js';
-export { DSMRParser } from './parsers/dsmr.js';
-export { DSMRStreamParser } from './parsers/stream.js';
-export { DSMRFrameValid } from './util/frame-validation.js';
 export * from './util/errors.js';
+
+export const DSMR = {
+  parse: DSMRParser,
+  parseFromStream: DSMRStreamParser,
+  isValidFrame: DSMRFrameValid,
+  MBUS_DEVICE_IDS,
+  getMbusDevice,
+} as const;
