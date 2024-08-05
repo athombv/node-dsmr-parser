@@ -5,10 +5,12 @@ import { encryptFrame, getAllTestTelegramTestCases, readTelegramFromFiles } from
 
 describe('DSMR Parser', async () => {
   const testCases = await getAllTestTelegramTestCases();
-  
+
   for (const testCase of testCases) {
     it(`Parses ${testCase}`, async () => {
-      const { input, output: expectedOutput } = await readTelegramFromFiles(`./tests/telegrams/${testCase}`);
+      const { input, output: expectedOutput } = await readTelegramFromFiles(
+        `./tests/telegrams/${testCase}`,
+      );
 
       const parsed = DSMRParser({
         telegram: input,
@@ -18,7 +20,9 @@ describe('DSMR Parser', async () => {
     });
 
     it(`Parses ${testCase} with decryption`, async () => {
-      const { input, output: expectedOutput } = await readTelegramFromFiles(`./tests/telegrams/${testCase}`);
+      const { input, output: expectedOutput } = await readTelegramFromFiles(
+        `./tests/telegrams/${testCase}`,
+      );
 
       const key = '0123456789ABCDEF';
       const encrypted = encryptFrame({ frame: input, key });
@@ -38,7 +42,7 @@ describe('DSMR Parser', async () => {
     const parsed = DSMRParser({ telegram: input });
 
     const mbusData = getMbusDevice('gas', parsed);
-    
+
     assert.equal(mbusData?.deviceType, 0x03);
     assert.equal(mbusData?.unit, 'm3');
   });
@@ -54,7 +58,10 @@ describe('DSMR Parser', async () => {
   it('Decodes using \\n characters', async () => {
     // Note: use this file specifically because it doesn't have a CRC. The CRC is calculated using \r\n characters in
     // the other files, thus the assert would fail.
-    const { input, output } = await readTelegramFromFiles('./tests/telegrams/dsmr-3.0-spec-example', false);
+    const { input, output } = await readTelegramFromFiles(
+      './tests/telegrams/dsmr-3.0-spec-example',
+      false,
+    );
 
     const parsed = DSMRParser({
       telegram: input,
@@ -62,5 +69,5 @@ describe('DSMR Parser', async () => {
     });
 
     assert.deepStrictEqual(parsed, output);
-  })
+  });
 });

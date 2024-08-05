@@ -10,7 +10,6 @@ on:
       - testing
   pull_request:
 
-
 jobs:
   test:
     name: Test

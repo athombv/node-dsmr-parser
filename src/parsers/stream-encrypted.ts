@@ -1,6 +1,18 @@
 import { Readable } from 'node:stream';
-import { DSMRParser, DSMRStartOfFrameNotFoundError, type DSMRParserOptions, type DSMRParserResult } from '../index.js';
-import { decodeFooter, decodeHeader, decryptFrameContents, ENCRYPTED_DSMR_GCM_TAG_LEN, ENCRYPTED_DSMR_HEADER_LEN, ENCRYPTED_DSMR_TELEGRAM_SOF } from '../util/encryption.js';
+import {
+  DSMRParser,
+  DSMRStartOfFrameNotFoundError,
+  type DSMRParserOptions,
+  type DSMRParserResult,
+} from '../index.js';
+import {
+  decodeFooter,
+  decodeHeader,
+  decryptFrameContents,
+  ENCRYPTED_DSMR_GCM_TAG_LEN,
+  ENCRYPTED_DSMR_HEADER_LEN,
+  ENCRYPTED_DSMR_TELEGRAM_SOF,
+} from '../util/encryption.js';
 import { DEFAULT_FRAME_ENCODING } from '../util/frame-validation.js';
 
 export type DSMRStreamParser = {
@@ -10,9 +22,9 @@ export type DSMRStreamParser = {
   clear(): void;
   /** Size in bytes of the data that is cached */
   currentSize(): number;
-}
+};
 
-export type DSMRStreamParserOptions = Omit<DSMRParserOptions, 'telegram'>
+export type DSMRStreamParserOptions = Omit<DSMRParserOptions, 'telegram'>;
 
 export type DSMRStreamCallback = (error: unknown, result?: DSMRParserResult) => void;
 
@@ -32,13 +44,13 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
   private onData(data: Buffer) {
     if (!this.hasStartOfFrame) {
       const sofIndex = data.indexOf(ENCRYPTED_DSMR_TELEGRAM_SOF);
-      
+
       // Not yet a valid frame. Discard the data
       if (sofIndex === -1) {
         this.callback(new DSMRStartOfFrameNotFoundError(), undefined);
         return;
-      };
-      
+      }
+
       this.telegram = data.subarray(sofIndex, data.length);
       this.hasStartOfFrame = true;
     } else {
@@ -83,7 +95,7 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
     this.hasStartOfFrame = false;
     this.header = undefined;
     this.telegram = Buffer.alloc(0);
-    
+
     // There might be more data in the buffer for the next telegram.
     if (remainingData.length > 0) {
       this.onData(remainingData);

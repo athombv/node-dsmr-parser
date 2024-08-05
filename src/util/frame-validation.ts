@@ -12,7 +12,7 @@ export const isAsciiFrame = (telegram: Buffer) => {
   // Note: use utf8 encoding here, if ascii is parsed here it will always return true,
   // because bytes above 0x7F will be converted to 0x00-0x7f.
   return !nonAsciiRegex.test(telegram.toString('utf8'));
-}
+};
 
 /**
  * Check if the given frame is an encrypted frame.
@@ -29,7 +29,7 @@ export const isEncryptedFrame = (buffer: Buffer) => {
   } catch (_error) {
     return false;
   }
-}
+};
 
 /**
  * Check if received data is a valid frame, and if it is encrypted.
@@ -45,6 +45,6 @@ export const DSMRFrameValid = (telegram: Buffer) => {
 
   return {
     valid: ascii || encrypted,
-    encrypted: encrypted
+    encrypted: encrypted,
   };
-}
+};

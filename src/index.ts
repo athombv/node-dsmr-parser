@@ -1,20 +1,22 @@
-export type DSMRParserOptions = {
-  /** Raw DSMR telegram */
-  telegram: string;
-  /** New line characters */
-  newLineChars?: '\r\n' | '\n';
-  decryptionKey?: never;
-  encoding?: never;
-} | {
-  /** Encrypted DSMR telegram */
-  telegram: Buffer;
-  /** Decryption key */
-  decryptionKey?: string;
-  /** Encoding of the data in the buffer, defaults to ascii */
-  encoding?: BufferEncoding;
-  /** New line characters */
-  newLineChars?: '\r\n' | '\n';
-};
+export type DSMRParserOptions =
+  | {
+      /** Raw DSMR telegram */
+      telegram: string;
+      /** New line characters */
+      newLineChars?: '\r\n' | '\n';
+      decryptionKey?: never;
+      encoding?: never;
+    }
+  | {
+      /** Encrypted DSMR telegram */
+      telegram: Buffer;
+      /** Decryption key */
+      decryptionKey?: string;
+      /** Encoding of the data in the buffer, defaults to ascii */
+      encoding?: BufferEncoding;
+      /** New line characters */
+      newLineChars?: '\r\n' | '\n';
+    };
 
 export type DSMRParserResult = {
   header: {
@@ -77,21 +79,23 @@ export type DSMRParserResult = {
       l3?: number;
     };
   };
-  mBus: Record<number, {
-    deviceType?: number; // TODO: Parse to device type?
-    equipmentId?: string;
-    value?: number;
-    unit?: string;
-    timestamp?: string; // TODO: Parse to date object
-  }>;
+  mBus: Record<
+    number,
+    {
+      deviceType?: number; // TODO: Parse to device type?
+      equipmentId?: string;
+      value?: number;
+      unit?: string;
+      timestamp?: string; // TODO: Parse to date object
+    }
+  >;
   crc?: {
     value: number;
     valid: boolean;
   };
 };
 
-
-export { MBUS_DEVICE_IDS, getMbusDevice } from './parsers/mbus.js'
+export { MBUS_DEVICE_IDS, getMbusDevice } from './parsers/mbus.js';
 export { DSMRParser } from './parsers/dsmr.js';
 export { DSMRStreamParser } from './parsers/stream.js';
 export { DSMRFrameValid } from './util/frame-validation.js';

@@ -1,15 +1,13 @@
 {
   "extends": "./node_modules/@tsconfig/node18/tsconfig.json",
-  "include": [
-    "src/**/*.ts",
-  ],
+  "include": ["src/**/*.ts"],
   "compilerOptions": {
-    "declaration": true,                              /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
-    "outDir": "./dist",                                  /* Specify an output folder for all emitted files. */
-    "noImplicitAny": true,                               /* Enable error reporting for expressions and declarations with an implied 'any' type. */
-    "strictNullChecks": true,                            /* When type checking, take into account 'null' and 'undefined'. */
-    "strictBindCallApply": true,                         /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */
-    "alwaysStrict": true,                                /* Ensure 'use strict' is always emitted. */
+    "declaration": true /* Generate .d.ts files from TypeScript and JavaScript files in your project. */,
+    "outDir": "./dist" /* Specify an output folder for all emitted files. */,
+    "noImplicitAny": true /* Enable error reporting for expressions and declarations with an implied 'any' type. */,
+    "strictNullChecks": true /* When type checking, take into account 'null' and 'undefined'. */,
+    "strictBindCallApply": true /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */,
+    "alwaysStrict": true /* Ensure 'use strict' is always emitted. */,
     "allowJs": true
   }
 }

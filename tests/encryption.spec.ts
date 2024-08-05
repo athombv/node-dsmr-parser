@@ -7,7 +7,7 @@ import { DEFAULT_FRAME_ENCODING } from '../src/util/frame-validation.js';
 
 describe('Encryption', async () => {
   const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
-  
+
   // This is not a real test, but at least it shows that the decryption works.
   // Ideally we add some real encrypted telegrams to the test suite.
   it('Can decrypt a message', () => {

@@ -4,10 +4,7 @@ import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: [
-      'dist/**/*',
-      'eslint.config.js',
-    ],
+    ignores: ['dist/**/*', 'eslint.config.js'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -24,27 +21,27 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       '@typescript-eslint/require-await': 'off',
       'no-unused-vars': 'off',
-      "@typescript-eslint/no-unused-vars": [
-        "error",
+      '@typescript-eslint/no-unused-vars': [
+        'error',
         {
-          "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^_",
-          "caughtErrorsIgnorePattern": "^_"
-        }
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
       ],
       // Allow floating promises in tests (source: https://github.com/nodejs/node/issues/51292#issuecomment-2241761056)
-      "@typescript-eslint/no-floating-promises": [
-        "error",
+      '@typescript-eslint/no-floating-promises': [
+        'error',
         {
-            "allowForKnownSafeCalls": [
-                {
-                    "from": "package",
-                    "name": [ "it", "describe" ],
-                    "package": "node:test"
-                }
-            ]
-        }
+          allowForKnownSafeCalls: [
+            {
+              from: 'package',
+              name: ['it', 'describe'],
+              package: 'node:test',
+            },
+          ],
+        },
       ],
-    }
+    },
   },
 );

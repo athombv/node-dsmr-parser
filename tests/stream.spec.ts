@@ -1,13 +1,15 @@
 import assert from 'assert';
 import { PassThrough } from 'node:stream';
-import { describe, it, mock} from 'node:test';
+import { describe, it, mock } from 'node:test';
 import { chunkBuffer, chunkString, encryptFrame, readTelegramFromFiles } from './test-utils.js';
 import { DSMRStartOfFrameNotFoundError, DSMRStreamParser } from '../src/index.js';
 
 describe('DSMRStreamParser', () => {
   describe('Unencrypted', () => {
     it('Parses a chunked unencrypted telegram', async () => {
-      const { input, output } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
+      const { input, output } = await readTelegramFromFiles(
+        './tests/telegrams/dsmr-5.0-spec-example',
+      );
 
       const chunks = chunkString(input, 10);
 
@@ -28,15 +30,19 @@ describe('DSMRStreamParser', () => {
     });
 
     it('Parses two unencrypted telegrams', async () => {
-      const { input: input1, output: output1 } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
-      const { input: input2, output: output2 } = await readTelegramFromFiles('./tests/telegrams/dsmr-4.0-spec-example');
+      const { input: input1, output: output1 } = await readTelegramFromFiles(
+        './tests/telegrams/dsmr-5.0-spec-example',
+      );
+      const { input: input2, output: output2 } = await readTelegramFromFiles(
+        './tests/telegrams/dsmr-4.0-spec-example',
+      );
 
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
       const instance = DSMRStreamParser(stream, {}, callbackMock);
 
-      stream.write(input1 + input2)
+      stream.write(input1 + input2);
 
       stream.end();
       instance.destroy();
@@ -67,7 +73,10 @@ describe('DSMRStreamParser', () => {
     it('Parses a telegram with a different newline character', async () => {
       // Note: use this file specifically because it doesn't have a CRC. The CRC is calculated using \r\n characters in
       // the other files, thus the assert would fail.
-      const { input, output } = await readTelegramFromFiles('./tests/telegrams/dsmr-3.0-spec-example', false);
+      const { input, output } = await readTelegramFromFiles(
+        './tests/telegrams/dsmr-3.0-spec-example',
+        false,
+      );
 
       const stream = new PassThrough();
       const callbackMock = mock.fn();
@@ -86,11 +95,13 @@ describe('DSMRStreamParser', () => {
 
   describe('Encrypted', () => {
     it('Parses a chunked encrypted telegram', async () => {
-      const { input, output } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
+      const { input, output } = await readTelegramFromFiles(
+        './tests/telegrams/dsmr-5.0-spec-example',
+      );
       const decryptionKey = '0123456789ABCDEF';
       const encrypted = encryptFrame({ frame: input, key: decryptionKey });
       const chunks = chunkBuffer(encrypted, 10);
-      
+
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
@@ -108,8 +119,12 @@ describe('DSMRStreamParser', () => {
     });
 
     it('Parses two encrypted telegrams', async () => {
-      const { input: input1, output: output1 } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
-      const { input: input2, output: output2 } = await readTelegramFromFiles('./tests/telegrams/dsmr-4.0-spec-example');
+      const { input: input1, output: output1 } = await readTelegramFromFiles(
+        './tests/telegrams/dsmr-5.0-spec-example',
+      );
+      const { input: input2, output: output2 } = await readTelegramFromFiles(
+        './tests/telegrams/dsmr-4.0-spec-example',
+      );
 
       const decryptionKey = '0123456789ABCDEF';
       const encrypted1 = encryptFrame({ frame: input1, key: decryptionKey });
@@ -136,7 +151,11 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(stream, { decryptionKey: '0123456789ABCDEF' }, callbackMock);
+      const instance = DSMRStreamParser(
+        stream,
+        { decryptionKey: '0123456789ABCDEF' },
+        callbackMock,
+      );
 
       stream.write('invalid telegram');
 
@@ -151,7 +170,10 @@ describe('DSMRStreamParser', () => {
     it('Parses a telegram with a different newline character', async () => {
       // Note: use this file specifically because it doesn't have a CRC. The CRC is calculated using \r\n characters in
       // the other files, thus the assert would fail.
-      const { input, output } = await readTelegramFromFiles('./tests/telegrams/dsmr-3.0-spec-example', false);
+      const { input, output } = await readTelegramFromFiles(
+        './tests/telegrams/dsmr-3.0-spec-example',
+        false,
+      );
 
       const decryptionKey = '0123456789ABCDEF';
       const encrypted = encryptFrame({ frame: input, key: decryptionKey });
@@ -159,7 +181,11 @@ describe('DSMRStreamParser', () => {
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
-      const instance = DSMRStreamParser(stream, { newLineChars: '\n', decryptionKey }, callbackMock);
+      const instance = DSMRStreamParser(
+        stream,
+        { newLineChars: '\n', decryptionKey },
+        callbackMock,
+      );
       stream.write(encrypted);
 
       stream.end();
