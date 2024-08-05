@@ -63,6 +63,25 @@ describe('DSMRStreamParser', () => {
       assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRStartOfFrameNotFoundError);
       assert.equal(callbackMock.mock.calls[0].arguments[1], undefined);
     });
+
+    it('Parses a telegram with a different newline character', async () => {
+      // Note: use this file specifically because it doesn't have a CRC. The CRC is calculated using \r\n characters in
+      // the other files, thus the assert would fail.
+      const { input, output } = await readTelegramFromFiles('./tests/telegrams/dsmr-3.0-spec-example', false);
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const instance = DSMRStreamParser(stream, { newLineChars: '\n' }, callbackMock);
+      stream.write(input);
+
+      stream.end();
+      instance.destroy();
+
+      assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output);
+    });
   });
 
   describe('Encrypted', () => {
@@ -127,6 +146,28 @@ describe('DSMRStreamParser', () => {
       assert.equal(callbackMock.mock.calls.length, 1);
       assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRStartOfFrameNotFoundError);
       assert.equal(callbackMock.mock.calls[0].arguments[1], undefined);
+    });
+
+    it('Parses a telegram with a different newline character', async () => {
+      // Note: use this file specifically because it doesn't have a CRC. The CRC is calculated using \r\n characters in
+      // the other files, thus the assert would fail.
+      const { input, output } = await readTelegramFromFiles('./tests/telegrams/dsmr-3.0-spec-example', false);
+
+      const decryptionKey = '0123456789ABCDEF';
+      const encrypted = encryptFrame({ frame: input, key: decryptionKey });
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const instance = DSMRStreamParser(stream, { newLineChars: '\n', decryptionKey }, callbackMock);
+      stream.write(encrypted);
+
+      stream.end();
+      instance.destroy();
+
+      assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output);
     });
   });
 });

@@ -30,18 +30,21 @@ export const calculateCrc16 = (data: Buffer) => {
  * @param enteredCrc 
  * @returns 
  */
-export const isCrcValid = (telegram: string, enteredCrc: number) => {
-  // Because the CRC is always calculated over the telegram that is using
-  // crlf as newline characters, we need to replace the newline characters
-  // in the telegram with crlf before calculating the CRC.
-  telegram = telegram.replace(/\r?\n/g, '\r\n');
-  
+export const isCrcValid = ({
+  telegram,
+  crc,
+  newLineChars,
+}: {
+  telegram: string;
+  crc: number;
+  newLineChars: '\r\n' | '\n';
+}) => {
   // Strip the CRC from the telegram
-  const crcSplit = `\r\n!`;
+  const crcSplit = `${newLineChars}!`;
   const telegramParts = telegram.split(crcSplit);
   const strippedTelegram = telegramParts[0] + crcSplit;
 
   const calculatedCrc = calculateCrc16(Buffer.from(strippedTelegram, DEFAULT_FRAME_ENCODING));
 
-  return calculatedCrc === enteredCrc;
+  return calculatedCrc === crc;
 };

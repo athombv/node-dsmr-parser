@@ -8,6 +8,7 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
 
   private telegram = '';
   private hasStartOfFrame = false;
+  private eofRegex: RegExp;
 
   constructor(
     private stream: Readable,
@@ -15,6 +16,12 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
     private callback: DSMRStreamCallback,
   ) {
     this.stream.addListener('data', this.onData.bind(this));
+
+    // End of frame is \r\n!<CRC>\r\n with the CRC being optional as
+    // it is only for DSMR 4 and up.
+    this.eofRegex = options.newLineChars === '\n'
+      ? /\n!([0-9A-Fa-f]+)?\n/
+      : /\r\n!([0-9A-Fa-f]+)?\r\n/;
   }
 
   private onData(dataRaw: Buffer) {
@@ -35,10 +42,7 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
       this.telegram += data;
     }
 
-    // End of frame is \r\n!<CRC>\r\n with the CRC being optional as
-    // it is only for DSMR 4 and up.
-    const eofRegex = /\r\n!([0-9A-Fa-f]+)?\r\n/;
-    const regexResult = eofRegex.exec(this.telegram);
+    const regexResult = this.eofRegex.exec(this.telegram);
 
     // End of telegram has not been reached
     if (!regexResult) return;

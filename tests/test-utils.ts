@@ -7,12 +7,14 @@ export const getAllTestTelegramTestCases = async () => {
   return [...new Set(files.map((file) => file.replace('.txt', '').replace('.json', '')))];
 }
 
-export const readTelegramFromFiles = async (path: string) => {
+export const readTelegramFromFiles = async (path: string, replaceNewLines = true) => {
   const input = await fs.readFile(`${path}.txt`);
   const output = await fs.readFile(`${path}.json`);
-  
+
   return {
-    input: input.toString().replace(/\r?\n/g, '\r\n'),
+    input: replaceNewLines
+      ? input.toString().replace(/\r?\n/g, '\r\n')
+      : input.toString(),
     output: JSON.parse(output.toString()),
   }
 }

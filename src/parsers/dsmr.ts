@@ -80,7 +80,11 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   }
 
   if (result.crc !== undefined) {
-    result.crc.valid = isCrcValid(telegram, result.crc.value);
+    result.crc.valid = isCrcValid({
+      telegram,
+      crc: result.crc.value,
+      newLineChars: options.newLineChars,
+    });
   }
 
   if (result.header.identifier === '' || result.header.xxx === '' || result.header.z === '') {

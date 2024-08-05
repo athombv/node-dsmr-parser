@@ -40,13 +40,21 @@ describe('CRC', () => {
   describe('Telegrams', () => {
     it('Marks valid CRCs as valid', () => {
       const invalid = '/TST512345\r\n\r\nHello, world!\r\n!25b5\r\n';
-      const isValid = isCrcValid(invalid, 0x25b5);
+      const isValid = isCrcValid({
+        telegram: invalid,
+        crc: 0x25b5,
+        newLineChars: '\r\n',
+      });
       assert.equal(isValid, true);
     });
 
     it('Marks invalid CRCs as invalid', () => {
       const invalid = '/TST512345\r\n\r\nHello, world!\r\n!25b5\r\n';
-      const isValid = isCrcValid(invalid, 0x25b5 + 1);
+      const isValid = isCrcValid({
+        telegram: invalid,
+        crc: 0x25b5 + 1,
+        newLineChars: '\r\n',
+      });
       assert.equal(isValid, false);
     });
   });

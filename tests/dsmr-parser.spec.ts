@@ -50,4 +50,17 @@ describe('DSMR Parser', async () => {
       DSMRParser({ telegram: input });
     });
   });
+
+  it('Decodes using \\n characters', async () => {
+    // Note: use this file specifically because it doesn't have a CRC. The CRC is calculated using \r\n characters in
+    // the other files, thus the assert would fail.
+    const { input, output } = await readTelegramFromFiles('./tests/telegrams/dsmr-3.0-spec-example', false);
+
+    const parsed = DSMRParser({
+      telegram: input,
+      newLineChars: '\n',
+    });
+
+    assert.deepStrictEqual(parsed, output);
+  })
 });
