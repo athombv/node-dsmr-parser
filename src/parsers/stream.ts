@@ -1,7 +1,7 @@
 import { Readable } from 'node:stream';
 import { type DSMRParserOptions, type DSMRParserResult } from '../index.js';
 import { DSMRParser } from './dsmr.js';
-import { decodeFooter, decryptFrame, decodeHeader, ENCRYPTED_DSMR_GCM_TAG_LEN, ENCRYPTED_DSMR_HEADER_LEN, ENCRYPTED_DSMR_TELEGRAM_SOF } from '../util/encryption.js';
+import { decodeFooter, decryptFrameContents, decodeHeader, ENCRYPTED_DSMR_GCM_TAG_LEN, ENCRYPTED_DSMR_HEADER_LEN, ENCRYPTED_DSMR_TELEGRAM_SOF } from '../util/encryption.js';
 
 export type DSMRStreamCallback = (error: unknown, result?: DSMRParserResult) => void;
 
@@ -38,7 +38,7 @@ export const EncryptedDsmrStreamParser = (stream: Readable, options: Omit<DSMRPa
     try {
       const content = telegram.subarray(ENCRYPTED_DSMR_HEADER_LEN, header.contentLength);
       const footer = decodeFooter(telegram, header);
-      const decrypted = decryptFrame({
+      const decrypted = decryptFrameContents({
         data: content,
         header,
         footer,

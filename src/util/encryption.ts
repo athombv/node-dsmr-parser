@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { DSMRDecodeError, DSMRDecryptionError } from './errors.js';
 
 /**
  * For now this is specific to the luxembourg's smart metering system. (E-Meter P1 Specification)
@@ -33,17 +34,17 @@ export const ENCRYPTED_DSMR_HEADER_LEN = 17;
  */
 export const decodeHeader = (data: Buffer) => {
   if (data.length < ENCRYPTED_DSMR_HEADER_LEN) {
-    throw new Error('Invalid header length');
+    throw new DSMRDecodeError('Invalid header length');
   }
 
   let index = 0;
 
   if (data[index++] !== ENCRYPTED_DSMR_TELEGRAM_SOF) {
-    throw new Error('Invalid telegram sof');
+    throw new DSMRDecodeError('Invalid telegram sof');
   }
 
   if (data[index++] !== ENCRYPTED_DSMR_SYSTEM_TITLE_LEN) {
-    throw new Error('Invalid system title length');
+    throw new DSMRDecodeError('Invalid system title length');
   }
 
   const systemTitle = data.subarray(index, index + ENCRYPTED_DSMR_SYSTEM_TITLE_LEN);
@@ -71,7 +72,7 @@ export const decodeHeader = (data: Buffer) => {
  */
 export const decodeFooter = (data: Buffer, header: ReturnType<typeof decodeHeader>) => {
   if (data.length < ENCRYPTED_DSMR_GCM_TAG_LEN) {
-    throw new Error('Invalid footer length');
+    throw new DSMRDecodeError('Invalid footer length');
   }
 
   return {
@@ -80,9 +81,9 @@ export const decodeFooter = (data: Buffer, header: ReturnType<typeof decodeHeade
 };
 
 /**
- * Decrypts an encrypted DSMR frame
+ * Decrypts the contents of an encrypted DSMR frame.
  */
-export const decryptFrame = ({
+export const decryptFrameContents = ({
   data,
   header,
   footer,
@@ -102,11 +103,26 @@ export const decryptFrame = ({
   }
   
   const iv = Buffer.concat([header.systemTitle, header.frameCounter]);
-  const cipher = crypto.createDecipheriv('aes-128-gcm', key, iv, {
-    authTagLength: ENCRYPTED_DSMR_GCM_TAG_LEN,
-  });
-  cipher.setAuthTag(footer.gcmTag);
   
-  return cipher.update(data, undefined, 'ascii') + cipher.final('ascii');
+  // Wrap in try-catch to throw a DSMRDecryptionError instead of a generic error.
+  try {
+    const cipher = crypto.createDecipheriv('aes-128-gcm', key, iv, {
+      authTagLength: ENCRYPTED_DSMR_GCM_TAG_LEN,
+    });
+    cipher.setAuthTag(footer.gcmTag);
+    
+    return cipher.update(data, undefined, 'ascii') + cipher.final('ascii');
+  } catch (error) {
+    throw new DSMRDecryptionError(error);
+  }
 }
 
+/**
+ * Decrypts a full encrypted DSMR frame
+ */
+export const decryptFrame = (data: Buffer, key: string) => {
+  const header = decodeHeader(data);
+  const footer = decodeFooter(data, header);
+  const content = data.subarray(ENCRYPTED_DSMR_HEADER_LEN, header.contentLength);
+  return decryptFrameContents({ data: content, header, footer, key });
+}

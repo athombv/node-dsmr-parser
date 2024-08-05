@@ -3,7 +3,6 @@ import { chunkBuffer, chunkString, encryptFrame, readTelegramFromFiles } from '.
 import { PassThrough } from 'stream';
 import { DSMRStreamParser } from '../src';
 import assert from 'assert';
-import { decodeFooter, decodeHeader, decryptFrame, ENCRYPTED_DSMR_GCM_TAG_LEN, ENCRYPTED_DSMR_HEADER_LEN } from '../src/util/encryption';
 
 describe('DSMRStreamParser', () => {
   describe('Unencrypted', () => {
