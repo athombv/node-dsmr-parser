@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { calculateCrc16, isCrcValid } from '../src/util/crc';
+import { calculateCrc16, isCrcValid } from '../src/util/crc.js';
 
 describe('CRC', () => {
   describe('CRC16', () => {

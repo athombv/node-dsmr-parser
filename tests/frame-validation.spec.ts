@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import { isAsciiFrame, isEncryptedFrame, DSMRFrameValid } from '../src/util/frame-validation';
-import { encryptFrame, getAllTestTelegramTestCases, readTelegramFromFiles } from './test-utils';
+import { isAsciiFrame, isEncryptedFrame, DSMRFrameValid } from '../src/util/frame-validation.js';
+import { encryptFrame, getAllTestTelegramTestCases, readTelegramFromFiles } from './test-utils.js';
 
 describe('Frame validation', () => {
   it('Detects ascii buffer', () => {

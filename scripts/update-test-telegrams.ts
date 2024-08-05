@@ -3,7 +3,7 @@
  * Only run this script if you want to update the expected output of the DSMRParser.
  */
 import fs from 'fs/promises';
-import { DSMRParser } from '../src';
+import { DSMRParser } from '../src/index.js';
 
 const files = await fs.readdir('./tests/telegrams');
 const testCases = [...new Set(files.map((file) => file.replace('.txt', '').replace('.json', '')))];

@@ -91,7 +91,7 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
   }
 
   destroy(): void {
-    this.stream.removeListener('data', this.onData);
+    this.stream.removeListener('data', this.onData.bind(this));
   }
 
   clear(): void {

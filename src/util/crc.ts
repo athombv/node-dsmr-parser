@@ -1,4 +1,3 @@
-import { DSMRParserOptions } from '../index.js';
 import { DEFAULT_FRAME_ENCODING } from './frame-validation.js';
 
 /**

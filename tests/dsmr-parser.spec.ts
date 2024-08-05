@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
-import { DSMRParser, getMbusDevice } from '../src';
+import { DSMRParser, getMbusDevice } from '../src/index.js';
 import assert from 'node:assert';
-import { encryptFrame, getAllTestTelegramTestCases, readTelegramFromFiles } from './test-utils';
+import { encryptFrame, getAllTestTelegramTestCases, readTelegramFromFiles } from './test-utils.js';
 
 describe('DSMR Parser', async () => {
   const testCases = await getAllTestTelegramTestCases();

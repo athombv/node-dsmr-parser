@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { promises as fs } from 'node:fs';
-import { ENCRYPTED_DSMR_GCM_TAG_LEN, ENCRYPTED_DSMR_HEADER_LEN, ENCRYPTED_DSMR_SYSTEM_TITLE_LEN, ENCRYPTED_DSMR_TELEGRAM_SOF } from '../src/util/encryption';
+import { ENCRYPTED_DSMR_GCM_TAG_LEN, ENCRYPTED_DSMR_HEADER_LEN, ENCRYPTED_DSMR_SYSTEM_TITLE_LEN, ENCRYPTED_DSMR_TELEGRAM_SOF } from '../src/util/encryption.js';
 
 export const getAllTestTelegramTestCases = async () => {
   const files = await fs.readdir('./tests/telegrams');
@@ -15,7 +15,7 @@ export const readTelegramFromFiles = async (path: string, replaceNewLines = true
     input: replaceNewLines
       ? input.toString().replace(/\r?\n/g, '\r\n')
       : input.toString(),
-    output: JSON.parse(output.toString()),
+    output: JSON.parse(output.toString()) as object,
   }
 }
 

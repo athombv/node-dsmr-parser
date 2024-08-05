@@ -1,8 +1,8 @@
-import { describe, it, mock} from 'node:test';
-import { chunkBuffer, chunkString, encryptFrame, readTelegramFromFiles } from './test-utils';
-import { PassThrough } from 'stream';
-import { DSMRStartOfFrameNotFoundError, DSMRStreamParser } from '../src';
 import assert from 'assert';
+import { PassThrough } from 'node:stream';
+import { describe, it, mock} from 'node:test';
+import { chunkBuffer, chunkString, encryptFrame, readTelegramFromFiles } from './test-utils.js';
+import { DSMRStartOfFrameNotFoundError, DSMRStreamParser } from '../src/index.js';
 
 describe('DSMRStreamParser', () => {
   describe('Unencrypted', () => {
