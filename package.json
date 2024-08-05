@@ -10,8 +10,10 @@
   ],
   "scripts": {
     "test": "node --import tsx --test-reporter spec --test ./tests/*.spec.ts",
-    "lint": "echo \"No linting configured\" && exit 1",
+    "lint": "eslint . && npm run prettier:check",
     "build": "tsc",
+    "prettier": "prettier . --write",
+    "prettier:check": "prettier . --check",
     "parse-telegram": "tsx ./scripts/parse-telegram.ts"
   },
   "repository": {
@@ -25,9 +27,15 @@
   },
   "homepage": "https://github.com/athombv/node-dsmr-parser#readme",
   "devDependencies": {
+    "@eslint/js": "^9.8.0",
     "@tsconfig/node18": "^18.2.4",
+    "@types/eslint__js": "^8.42.3",
     "@types/node": "^20.14.11",
+    "eslint": "^9.8.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
     "tsx": "^4.16.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.0"
   }
 }
