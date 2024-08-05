@@ -129,6 +129,14 @@ export const DefaultDSMRStreamParser = (stream: Readable, options: Omit<DSMRPars
   }
 };
 
+/**
+ * Create a DSMR stream parser that reads data from a stream and calls a callback when a telegram is parsed.
+ * 
+ * @param stream Stream to read data from
+ * @param options Settings for parsing the DSMR data
+ * @param callback Method that is called when a telegram is parsed or when an error occurred.
+ * @returns Method to stop the stream parser.
+ */
 export const DSMRStreamParser = (stream: Readable, options: Omit<DSMRParserOptions, 'telegram'>, callback: DSMRStreamCallback) => {
   if (options.decryptionKey) {
     return EncryptedDsmrStreamParser(stream, options, callback);
