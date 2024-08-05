@@ -1,9 +1,6 @@
 import { DEFAULT_FRAME_ENCODING } from './frame-validation.js';
 
-/**
- * Calculate the CRC16 value of a buffer.
- * This will use the polynomial: x16+x15+x2+1 (IBM)
- */
+/** Calculate the CRC16 value of a buffer. This will use the polynomial: x16+x15+x2+1 (IBM) */
 export const calculateCrc16 = (data: Buffer) => {
   let crc = 0;
 
@@ -24,7 +21,10 @@ export const calculateCrc16 = (data: Buffer) => {
 };
 
 /**
- * CRC is a CRC16 value calculated over the preceding characters in the data message (from “/” to “!” using the polynomial: x16+x15+x2+1). CRC16 uses no XOR in, no XOR out and is computed with least significant bit first. The value is represented as 4 hexadecimal charac- ters (MSB first).
+ * CRC is a CRC16 value calculated over the preceding characters in the data message (from “/” to
+ * “!” using the polynomial: x16+x15+x2+1). CRC16 uses no XOR in, no XOR out and is computed with
+ * least significant bit first. The value is represented as 4 hexadecimal characters (MSB first).
+ *
  * @param telegram
  * @param enteredCrc
  * @returns

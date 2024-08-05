@@ -20,6 +20,7 @@ const decodeCOSEMObject = (line: string, result: DSMRParserResult, options: DSMR
 
 /**
  * Parse a DSMR telegram into a structured object.
+ *
  * @throws If CRC validation fails
  */
 export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {

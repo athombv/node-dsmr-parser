@@ -1,6 +1,7 @@
 /**
- * This scripts reads all .txt files in the tests/telegrams folder, parses them and writes the result to a .json file.
- * Only run this script if you want to update the expected output of the DSMRParser.
+ * This scripts reads all .txt files in the tests/telegrams folder, parses them and writes the
+ * result to a .json file. Only run this script if you want to update the expected output of the
+ * DSMRParser.
  */
 import fs from 'fs/promises';
 import { DSMR } from '../src/index.js';

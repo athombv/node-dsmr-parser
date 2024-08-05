@@ -3,8 +3,8 @@ import { decodeHeader, ENCRYPTED_DSMR_TELEGRAM_SOF } from './encryption.js';
 export const DEFAULT_FRAME_ENCODING = 'ascii';
 
 /**
- * Check if a line contains only valid ascii characters. If this is not the case,
- * the line is either encrypted or contains invalid characters.
+ * Check if a line contains only valid ascii characters. If this is not the case, the line is either
+ * encrypted or contains invalid characters.
  */
 export const isAsciiFrame = (telegram: Buffer) => {
   // eslint-disable-next-line no-control-regex
@@ -14,9 +14,7 @@ export const isAsciiFrame = (telegram: Buffer) => {
   return !nonAsciiRegex.test(telegram.toString('utf8'));
 };
 
-/**
- * Check if the given frame is an encrypted frame.
- */
+/** Check if the given frame is an encrypted frame. */
 export const isEncryptedFrame = (buffer: Buffer) => {
   const sofIndex = buffer.indexOf(ENCRYPTED_DSMR_TELEGRAM_SOF);
 
@@ -31,9 +29,7 @@ export const isEncryptedFrame = (buffer: Buffer) => {
   }
 };
 
-/**
- * Check if received data is a valid frame, and if it is encrypted.
- */
+/** Check if received data is a valid frame, and if it is encrypted. */
 export const DSMRFrameValid = (telegram: Buffer) => {
   const ascii = isAsciiFrame(telegram);
   let encrypted = false;

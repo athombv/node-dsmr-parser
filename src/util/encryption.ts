@@ -6,7 +6,7 @@ import { DSMRDecodeError, DSMRDecryptionError } from './errors.js';
  * They wrap a DSMR telegram in a custom frame with the following format:
  *
  * | Byte   | Description         | Example                             |
- * |--------|---------------------|-------------------------------------|
+ * | ------ | ------------------- | ----------------------------------- |
  * | 0      | SOF                 | DB (fixed)                          |
  * | 1      | System Title Length | 08 (fixed)                          |
  * | 2-9    | System Title        | 00 11 22 33 44 55 66 77             |
@@ -16,11 +16,12 @@ import { DSMRDecodeError, DSMRDecryptionError } from './errors.js';
  * | 17-n   | Frame               | <Encrypted DSMR frame>              |
  * | n-n+12 | GCM Tag             | 00 11 22 33 44 55 66 77 88 99 AA BB |
  *
- * The encrypted DSMR frame is encrypted using AES-128-GCM, and the user can request
- * the encryption key from the utility company. The IV is the concatenation of the system title
- * and the frame counter.
+ * The encrypted DSMR frame is encrypted using AES-128-GCM, and the user can request the encryption
+ * key from the utility company. The IV is the concatenation of the system title and the frame
+ * counter.
  *
- * Length of frame is 17 (header length) + length of the encrypted DSMR frame. GCM tag length is excluded.
+ * Length of frame is 17 (header length) + length of the encrypted DSMR frame. GCM tag length is
+ * excluded.
  */
 
 export const ENCRYPTED_DSMR_TELEGRAM_SOF = 0xdb;
@@ -80,9 +81,7 @@ export const decodeFooter = (data: Buffer, header: ReturnType<typeof decodeHeade
   };
 };
 
-/**
- * Decrypts the contents of an encrypted DSMR frame.
- */
+/** Decrypts the contents of an encrypted DSMR frame. */
 export const decryptFrameContents = ({
   data,
   header,
@@ -121,9 +120,7 @@ export const decryptFrameContents = ({
   }
 };
 
-/**
- * Decrypts a full encrypted DSMR frame
- */
+/** Decrypts a full encrypted DSMR frame */
 export const decryptFrame = ({
   data,
   key,

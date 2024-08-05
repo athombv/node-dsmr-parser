@@ -8,7 +8,8 @@ import {
 import { UnencryptedDSMRStreamParser } from './stream-unencrypted.js';
 
 /**
- * Create a DSMR stream parser that reads data from a stream and calls a callback when a telegram is parsed.
+ * Create a DSMR stream parser that reads data from a stream and calls a callback when a telegram is
+ * parsed.
  *
  * @param stream Stream to read data from
  * @param options Settings for parsing the DSMR data
