@@ -57,7 +57,7 @@ jobs:
 
       - name: Automatic version bump
         if: github.event.inputs.version_bump != 'none'
-        run: npm version ${{ github.event.inputs.version_bump }}
+        run: npm version ${{ github.event.inputs.version_bump }} --preid rc
 
       - name: Push Version
         run: git push --follow-tags
