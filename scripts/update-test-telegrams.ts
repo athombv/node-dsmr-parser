@@ -10,8 +10,9 @@ const files = await fs.readdir('./tests/telegrams');
 const testCases = [...new Set(files.map((file) => file.replace('.txt', '').replace('.json', '')))];
 
 for (const file of testCases) {
-  const input = await fs.readFile(`./tests/telegrams/${file}.txt`, 'utf-8');
-  const parsed = DSMR.parse({ telegram: input, newLineChars: '\n' });
+  let input = await fs.readFile(`./tests/telegrams/${file}.txt`, 'utf-8');
+  input = input.replace(/\r?\n/g, '\r\n');
+  const parsed = DSMR.parse({ telegram: input });
   const json = JSON.stringify(parsed, null, 2);
   await fs.writeFile(`./tests/telegrams/${file}.json`, json);
 }

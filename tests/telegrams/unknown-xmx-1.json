@@ -19,8 +19,8 @@
       "returned": 0
     },
     "currentTariff": 1,
-    "powerReturnedTotal": 0.55,
-    "powerReceivedTotal": 0
+    "powerReceivedTotal": 0.55,
+    "powerReturnedTotal": 0
   },
   "mBus": {}
 }

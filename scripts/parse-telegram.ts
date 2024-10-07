@@ -14,7 +14,7 @@ const resolvedPath = path.resolve(process.cwd(), filePath);
 
 const file = await fs.readFile(resolvedPath, 'utf-8');
 
-const parsed = DSMR.parse({ telegram: file, newLineChars: '\r\n' });
+const parsed = DSMR.parse({ telegram: file, newLineChars: '\n' });
 
 console.log(JSON.stringify(parsed, null, 2));
 

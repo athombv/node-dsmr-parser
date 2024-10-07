@@ -59,8 +59,8 @@
     "textMessage": ""
   },
   "electricity": {
-    "powerReturnedTotal": 0.005,
-    "powerReceivedTotal": 0,
+    "powerReceivedTotal": 0.005,
+    "powerReturnedTotal": 0,
     "voltage": {
       "l1": 233,
       "l2": 0,

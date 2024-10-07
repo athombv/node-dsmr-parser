@@ -66,13 +66,13 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
   {
     regex: /^1-0:1\.7\.0\((\d+(\.\d+)?)\*kW\)/,
     parser: (regexResult, result) => {
-      result.electricity.powerReturnedTotal = parseFloat(regexResult[1]);
+      result.electricity.powerReceivedTotal = parseFloat(regexResult[1]);
     },
   },
   {
     regex: /^1-0:2\.7\.0\((\d+(\.\d+)?)\*kW\)/,
     parser: (regexResult, result) => {
-      result.electricity.powerReceivedTotal = parseFloat(regexResult[1]);
+      result.electricity.powerReturnedTotal = parseFloat(regexResult[1]);
     },
   },
   {
