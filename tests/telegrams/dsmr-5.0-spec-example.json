@@ -37,8 +37,8 @@
       "returned": 123456.789
     },
     "currentTariff": 2,
-    "powerReturnedTotal": 1.193,
-    "powerReceivedTotal": 0,
+    "powerReceivedTotal": 1.193,
+    "powerReturnedTotal": 0,
     "voltage": {
       "l1": 220.1,
       "l2": 220.2,

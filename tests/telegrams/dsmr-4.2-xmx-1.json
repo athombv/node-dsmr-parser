@@ -34,8 +34,8 @@
       "returned": 28.031
     },
     "currentTariff": 1,
-    "powerReturnedTotal": 0.494,
-    "powerReceivedTotal": 0,
+    "powerReceivedTotal": 0.494,
+    "powerReturnedTotal": 0,
     "current": {
       "l1": 3
     },

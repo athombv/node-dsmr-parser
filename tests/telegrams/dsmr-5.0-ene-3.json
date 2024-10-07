@@ -38,8 +38,8 @@
       "returned": 7.849
     },
     "currentTariff": 2,
-    "powerReturnedTotal": 0.723,
-    "powerReceivedTotal": 0,
+    "powerReceivedTotal": 0.723,
+    "powerReturnedTotal": 0,
     "voltage": {
       "l1": 226,
       "l2": 225,

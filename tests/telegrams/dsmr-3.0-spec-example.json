@@ -25,8 +25,8 @@
       "returned": 12345.678
     },
     "currentTariff": 2,
-    "powerReturnedTotal": 1.19,
-    "powerReceivedTotal": 0
+    "powerReceivedTotal": 1.19,
+    "powerReturnedTotal": 0
   },
   "mBus": {
     "1": {
