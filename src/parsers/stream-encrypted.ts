@@ -29,13 +29,15 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
   private hasStartOfFrame = false;
   private header: ReturnType<typeof decodeHeader> | undefined = undefined;
   private telegram = Buffer.alloc(0);
+  private boundOnData: EncryptedDSMRStreamParser['onData'];
 
   constructor(
     private stream: Readable,
     private options: DSMRStreamParserOptions,
     private callback: DSMRStreamCallback,
   ) {
-    this.stream.addListener('data', this.onData.bind(this));
+    this.boundOnData = this.onData.bind(this);
+    this.stream.addListener('data', this.boundOnData);
   }
 
   private onData(data: Buffer) {
@@ -105,7 +107,7 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
   }
 
   destroy(): void {
-    this.stream.removeListener('data', this.onData.bind(this));
+    this.stream.removeListener('data', this.boundOnData);
   }
 
   clear(): void {

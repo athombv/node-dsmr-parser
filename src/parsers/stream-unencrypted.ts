@@ -12,13 +12,15 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
   private telegram = '';
   private hasStartOfFrame = false;
   private eofRegex: RegExp;
+  private boundOnData: UnencryptedDSMRStreamParser['onData'];
 
   constructor(
     private stream: Readable,
     private options: DSMRStreamParserOptions,
     private callback: DSMRStreamCallback,
   ) {
-    this.stream.addListener('data', this.onData.bind(this));
+    this.boundOnData = this.onData.bind(this);
+    this.stream.addListener('data', this.boundOnData);
 
     // End of frame is \r\n!<CRC>\r\n with the CRC being optional as
     // it is only for DSMR 4 and up.
@@ -73,7 +75,7 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
   }
 
   destroy() {
-    this.stream.removeListener('data', this.onData.bind(this));
+    this.stream.removeListener('data', this.boundOnData);
   }
 
   clear() {
