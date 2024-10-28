@@ -1,9 +1,7 @@
 export class DSMRError extends Error {
   rawTelegram?: Buffer;
 
-  /**
-   * Optionally add the raw telegram that caused the error.
-   */
+  /** Optionally add the raw telegram that caused the error. */
   withRawTelegram(raw: Buffer) {
     this.rawTelegram = raw;
   }

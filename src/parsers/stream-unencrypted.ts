@@ -64,9 +64,11 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
       this.callback(null, result);
     } catch (error) {
       if (error instanceof DSMRError) {
-        error.withRawTelegram(Buffer.from(this.telegram, this.options.encoding ?? DEFAULT_FRAME_ENCODING));
+        error.withRawTelegram(
+          Buffer.from(this.telegram, this.options.encoding ?? DEFAULT_FRAME_ENCODING),
+        );
       }
-      
+
       this.callback(error, undefined);
     }
 
