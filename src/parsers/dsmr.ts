@@ -43,6 +43,7 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   const lines = telegram.split(options.newLineChars);
 
   const result: DSMRParserResult = {
+    raw: telegram,
     header: {
       identifier: '',
       xxx: '',
