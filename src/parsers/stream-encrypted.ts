@@ -10,7 +10,7 @@ import {
 } from '../util/encryption.js';
 import { DEFAULT_FRAME_ENCODING } from '../util/frame-validation.js';
 import { DSMRParser } from './dsmr.js';
-import { DSMRStartOfFrameNotFoundError } from '../util/errors.js';
+import { DSMRError, DSMRStartOfFrameNotFoundError } from '../util/errors.js';
 
 export type DSMRStreamParser = {
   /** Stop the stream parser. */
@@ -46,7 +46,10 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
 
       // Not yet a valid frame. Discard the data
       if (sofIndex === -1) {
-        this.callback(new DSMRStartOfFrameNotFoundError(), undefined);
+        const error = new DSMRStartOfFrameNotFoundError();
+        error.withRawTelegram(data);
+
+        this.callback(error, undefined);
         return;
       }
 
@@ -61,6 +64,11 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
         this.header = decodeHeader(this.telegram);
       } catch (error) {
         this.clear();
+
+        if (error instanceof DSMRError) {
+          error.withRawTelegram(this.telegram);
+        }
+
         this.callback(error, undefined);
         return;
       }
@@ -91,6 +99,10 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
 
       this.callback(null, result);
     } catch (error) {
+      if (error instanceof DSMRError) {
+        error.withRawTelegram(this.telegram);
+      }
+
       this.callback(error, undefined);
     }
 
