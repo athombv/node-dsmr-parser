@@ -78,6 +78,11 @@ describe('DSMRStreamParser', () => {
         false,
       );
 
+      // Need to manually replace \r\n with \n because the expected output is using \r\n
+      // @ts-expect-error output is not typed
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      output.raw = output.raw.replace(/\r\n/g, '\n');
+
       const stream = new PassThrough();
       const callbackMock = mock.fn();
 
@@ -174,6 +179,11 @@ describe('DSMRStreamParser', () => {
         './tests/telegrams/dsmr-3.0-spec-example',
         false,
       );
+
+      // Need to manually replace \r\n with \n because the expected output is using \r\n
+      // @ts-expect-error output is not typed
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      output.raw = output.raw.replace(/\r\n/g, '\n');
 
       const decryptionKey = '0123456789ABCDEF';
       const encrypted = encryptFrame({ frame: input, key: decryptionKey });

@@ -24,6 +24,7 @@ export type DSMRParserOptions =
     };
 
 export type DSMRParserResult = {
+  raw: string;
   header: {
     identifier: string;
     xxx: string;
