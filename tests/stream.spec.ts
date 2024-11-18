@@ -96,6 +96,29 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
       assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output);
     });
+
+    it("Doesn't throw error after receiving null character", async () => {
+      // Note: some meters send a null character (\0) at the end of the telegram. This should be ignored.
+      const { input, output } = await readTelegramFromFiles(
+        './tests/telegrams/dsmr-5.0-spec-example',
+      );
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const instance = DSMR.parseFromStream(stream, {}, callbackMock);
+      stream.write(input + '\0');
+      stream.end();
+      instance.destroy();
+
+      assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], {
+        ...output,
+        // @ts-expect-error output is not typed
+        raw: output.raw + '\0',
+      });
+    });
   });
 
   describe('Encrypted', () => {
