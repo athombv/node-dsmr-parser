@@ -25,7 +25,7 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
     // End of frame is \r\n!<CRC>\r\n with the CRC being optional as
     // it is only for DSMR 4 and up.
     this.eofRegex =
-      options.newLineChars === '\n' ? /\n!([0-9A-Fa-f]+)?\n/ : /\r\n!([0-9A-Fa-f]+)?\r\n/;
+      options.newLineChars === '\n' ? /\n!([0-9A-Fa-f]+)?\n(\0)?/ : /\r\n!([0-9A-Fa-f]+)?\r\n(\0)?/;
   }
 
   private onData(dataRaw: Buffer) {
