@@ -68,7 +68,7 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
           valid: false,
         };
       }
-    } else if (line === '') {
+    } else if (line === '' || line === '\0') {
       // skip empty lines
     } else {
       // Decode cosem object
