@@ -40,10 +40,10 @@
     "current": {
       "l1": 3
     },
-    "powerReturned": {
+    "powerReceived": {
       "l1": 0.494
     },
-    "powerReceived": {
+    "powerReturned": {
       "l1": 0
     }
   },

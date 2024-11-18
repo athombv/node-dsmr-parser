@@ -196,43 +196,43 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
   {
     regex: /^1-0:21\.7\.0\((\d+(\.\d+)?)\*kW\)/,
     parser: (regexResult, result) => {
-      result.electricity.powerReturned = result.electricity.powerReturned ?? {};
-      result.electricity.powerReturned.l1 = parseFloat(regexResult[1]);
-    },
-  },
-  {
-    regex: /^1-0:41\.7\.0\((\d+(\.\d+)?)\*kW\)/,
-    parser: (regexResult, result) => {
-      result.electricity.powerReturned = result.electricity.powerReturned ?? {};
-      result.electricity.powerReturned.l2 = parseFloat(regexResult[1]);
-    },
-  },
-  {
-    regex: /^1-0:61\.7\.0\((\d+(\.\d+)?)\*kW\)/,
-    parser: (regexResult, result) => {
-      result.electricity.powerReturned = result.electricity.powerReturned ?? {};
-      result.electricity.powerReturned.l3 = parseFloat(regexResult[1]);
-    },
-  },
-  {
-    regex: /^1-0:22\.7\.0\((\d+(\.\d+)?)\*kW\)/,
-    parser: (regexResult, result) => {
       result.electricity.powerReceived = result.electricity.powerReceived ?? {};
       result.electricity.powerReceived.l1 = parseFloat(regexResult[1]);
     },
   },
   {
-    regex: /^1-0:42\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-0:41\.7\.0\((\d+(\.\d+)?)\*kW\)/,
     parser: (regexResult, result) => {
       result.electricity.powerReceived = result.electricity.powerReceived ?? {};
       result.electricity.powerReceived.l2 = parseFloat(regexResult[1]);
     },
   },
   {
-    regex: /^1-0:62\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-0:61\.7\.0\((\d+(\.\d+)?)\*kW\)/,
     parser: (regexResult, result) => {
       result.electricity.powerReceived = result.electricity.powerReceived ?? {};
       result.electricity.powerReceived.l3 = parseFloat(regexResult[1]);
+    },
+  },
+  {
+    regex: /^1-0:22\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    parser: (regexResult, result) => {
+      result.electricity.powerReturned = result.electricity.powerReturned ?? {};
+      result.electricity.powerReturned.l1 = parseFloat(regexResult[1]);
+    },
+  },
+  {
+    regex: /^1-0:42\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    parser: (regexResult, result) => {
+      result.electricity.powerReturned = result.electricity.powerReturned ?? {};
+      result.electricity.powerReturned.l2 = parseFloat(regexResult[1]);
+    },
+  },
+  {
+    regex: /^1-0:62\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    parser: (regexResult, result) => {
+      result.electricity.powerReturned = result.electricity.powerReturned ?? {};
+      result.electricity.powerReturned.l3 = parseFloat(regexResult[1]);
     },
   },
   {

@@ -50,12 +50,12 @@
       "l2": 4,
       "l3": 4
     },
-    "powerReturned": {
+    "powerReceived": {
       "l1": 0,
       "l2": 0,
       "l3": 0
     },
-    "powerReceived": {
+    "powerReturned": {
       "l1": 0.068,
       "l2": 0.24,
       "l3": 0.257
