@@ -275,4 +275,18 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
       result.mBus[busId].unit = unit;
     },
   },
+  // This is the gas/water data for Belgium/eMUCS meters
+  {
+    regex: /^0-(\d):24\.2\.3\((\w+)\)\((\d+(\.\d+)?)\*(\w+)\)/,
+    parser: (regexResult, result) => {
+      const busId = parseInt(regexResult[1], 10);
+      const timestamp = regexResult[2];
+      const value = parseFloat(regexResult[3]);
+      const unit = regexResult[5];
+      result.mBus[busId] = result.mBus[busId] ?? {};
+      result.mBus[busId].timestamp = timestamp;
+      result.mBus[busId].value = value;
+      result.mBus[busId].unit = unit;
+    },
+  },
 ] as const;
