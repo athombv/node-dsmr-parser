@@ -263,7 +263,7 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
   //   }
   // },
   {
-    regex: /^0-(\d):24\.2\.1\((\w+)\)\((\d+(\.\d+)?)\*(\w+)\)/,
+    regex: /^0-(\d):24\.2\.1\((\w+)\)\((\d+(\.\d+)?)\*?(\w+)?\)/,
     parser: (regexResult, result) => {
       const busId = parseInt(regexResult[1], 10);
       const timestamp = regexResult[2];
