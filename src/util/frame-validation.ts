@@ -4,6 +4,7 @@ export const DEFAULT_FRAME_ENCODING = 'binary';
 
 /**
  * Check if a line contains only valid ascii characters.
+ *
  * @note Need to disable `no-control-regex` rule because of the use of control characters.
  */
 // eslint-disable-next-line no-control-regex
@@ -12,7 +13,7 @@ const ASCII_REGEX = /[^\x00-\x7F]/;
 /**
  * Check if a line contains only valid ascii characters. If this is not the case, the line is either
  * encrypted or contains invalid characters.
- * 
+ *
  * @note Doing this check with a regex compared to a loop or using `find` is around three times faster.
  */
 export const isAsciiFrame = (telegram: Buffer) => {
