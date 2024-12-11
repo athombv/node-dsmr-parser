@@ -49,3 +49,10 @@ export class DSMRDecryptionRequired extends DSMRDecodeError {
     this.name = 'DSMRDecryptionRequired';
   }
 }
+
+export class DSMRTimeoutError extends DSMRDecodeError {
+  constructor() {
+    super('Timeout while waiting for full frame');
+    this.name = 'DSMRTimeoutError';
+  }
+}
