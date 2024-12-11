@@ -2,7 +2,13 @@ import assert from 'assert';
 import { PassThrough } from 'node:stream';
 import { describe, it, mock } from 'node:test';
 import { chunkBuffer, chunkString, encryptFrame, readTelegramFromFiles } from './test-utils.js';
-import { DSMRStartOfFrameNotFoundError, DSMR } from '../src/index.js';
+import {
+  DSMRStartOfFrameNotFoundError,
+  DSMR,
+  DSMRDecryptionRequired,
+  DSMRDecodeError,
+} from '../src/index.js';
+import { ENCRYPTED_DSMR_HEADER_LEN } from '../src/util/encryption.js';
 
 describe('DSMRStreamParser', () => {
   describe('Unencrypted', () => {
@@ -60,7 +66,11 @@ describe('DSMRStreamParser', () => {
 
       const instance = DSMR.parseFromStream(stream, {}, callbackMock);
 
-      stream.write('invalid telegram');
+      const data = 'invalid telegram xxx yyy';
+      // Make sure the telegram is at least ENCRYPTED_DSMR_HEADER_LEN long to
+      // allow encrypted frames to be detected.
+      assert.ok(data.length >= ENCRYPTED_DSMR_HEADER_LEN);
+      stream.write(data);
 
       stream.end();
       instance.destroy();
@@ -227,6 +237,98 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
       assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
       assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output);
+    });
+
+    it('Detects an encrypted frame in non-encrypted mode', async () => {
+      const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
+      const decryptionKey = '0123456789ABCDEF';
+      const encrypted = encryptFrame({ frame: input, key: decryptionKey });
+      const chunks = chunkBuffer(encrypted, 1);
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const instance = DSMR.parseFromStream(
+        stream,
+        {
+          detectEncryption: true,
+        },
+        callbackMock,
+      );
+
+      for (const chunk of chunks) {
+        stream.write(chunk);
+      }
+
+      stream.end();
+      instance.destroy();
+
+      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRDecryptionRequired);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], undefined);
+
+      // If the encrypted data contains a start of frame in the final chunks, there could be remaining
+      // data left in the buffer, because it is waiting until it has enough data to detect the header of
+      // the encrypted frame.
+      assert.ok(instance.currentSize() < 2 * ENCRYPTED_DSMR_HEADER_LEN);
+
+      // Because everything is coming in as small chunks, it will be calling the callback multiple times.
+      // Each time it should be a DSMRStartOfFrameNotFoundError error, because only after the first chunks
+      // it should be able to detect that it is an encrypted frame.
+      for (let index = 1; index < callbackMock.mock.calls.length; index++) {
+        const error = callbackMock.mock.calls[index].arguments[0] as unknown;
+        assert.ok(error instanceof DSMRDecodeError && !(error instanceof DSMRDecryptionRequired));
+        assert.deepStrictEqual(callbackMock.mock.calls[index].arguments[1], undefined);
+      }
+    });
+
+    // Make sure that if the first chunk does not contain the
+    // full header, it will can still detect the encrypted frame when
+    it('Detects non-aligned encrypted frame', async () => {
+      const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
+      const decryptionKey = '0123456789ABCDEF';
+      const originalEncrypted = encryptFrame({ frame: input, key: decryptionKey });
+
+      const prefix = Buffer.from(
+        [...new Array<number>(ENCRYPTED_DSMR_HEADER_LEN - 1)].map(() => 0x00),
+      );
+
+      const encrypted = Buffer.concat([prefix, originalEncrypted]);
+      const chunks = chunkBuffer(encrypted, ENCRYPTED_DSMR_HEADER_LEN);
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const instance = DSMR.parseFromStream(
+        stream,
+        {
+          detectEncryption: true,
+        },
+        callbackMock,
+      );
+
+      for (const chunk of chunks) {
+        stream.write(chunk);
+      }
+
+      stream.end();
+      instance.destroy();
+
+      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRDecryptionRequired);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], undefined);
+
+      // If the encrypted data contains a start of frame in the final chunks, there could be remaining
+      // data left in the buffer, because it is waiting until it has enough data to detect the header of
+      // the encrypted frame.
+      assert.ok(instance.currentSize() < 2 * ENCRYPTED_DSMR_HEADER_LEN);
+
+      // Because everything is coming in as small chunks, it will be calling the callback multiple times.
+      // Each time it should be a kind of DSMRDecodeError error, because only after the first chunks
+      // it should be able to detect that it is an encrypted frame.
+      for (let index = 1; index < callbackMock.mock.calls.length; index++) {
+        const error = callbackMock.mock.calls[index].arguments[0] as unknown;
+        assert.ok(error instanceof DSMRDecodeError && !(error instanceof DSMRDecryptionRequired));
+        assert.deepStrictEqual(callbackMock.mock.calls[index].arguments[1], undefined);
+      }
     });
   });
 });
