@@ -36,9 +36,23 @@ export class DSMRDecodeError extends DSMRError {
   }
 }
 
-export class DSMRStartOfFrameNotFoundError extends DSMRError {
+export class DSMRStartOfFrameNotFoundError extends DSMRDecodeError {
   constructor() {
     super('Start of frame not found');
     this.name = 'DSMRStartOfFrameNotFoundError';
+  }
+}
+
+export class DSMRDecryptionRequired extends DSMRDecodeError {
+  constructor() {
+    super('Encrypted DSMR frame detected');
+    this.name = 'DSMRDecryptionRequired';
+  }
+}
+
+export class DSMRTimeoutError extends DSMRDecodeError {
+  constructor() {
+    super('Timeout while waiting for full frame');
+    this.name = 'DSMRTimeoutError';
   }
 }

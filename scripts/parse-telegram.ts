@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /** This script is used to parse a DSMR telegram from a file. */
 import { promises as fs } from 'node:fs';
 import path from 'node:path';

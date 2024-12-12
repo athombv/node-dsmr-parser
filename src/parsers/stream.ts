@@ -1,9 +1,9 @@
 import { Readable } from 'node:stream';
-import { DSMRParserOptions } from '../index.js';
 import {
   DSMRStreamCallback,
   EncryptedDSMRStreamParser,
   DSMRStreamParser as DSMRStreamParserType,
+  DSMRStreamParserOptions,
 } from './stream-encrypted.js';
 import { UnencryptedDSMRStreamParser } from './stream-unencrypted.js';
 
@@ -18,7 +18,7 @@ import { UnencryptedDSMRStreamParser } from './stream-unencrypted.js';
  */
 export const DSMRStreamParser = (
   stream: Readable,
-  options: Omit<DSMRParserOptions, 'telegram'>,
+  options: Omit<DSMRStreamParserOptions, 'telegram'>,
   callback: DSMRStreamCallback,
 ): DSMRStreamParserType => {
   if (options.decryptionKey) {

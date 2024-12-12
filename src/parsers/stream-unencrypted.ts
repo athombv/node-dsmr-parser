@@ -5,14 +5,30 @@ import {
   DSMRStreamParserOptions,
 } from './stream-encrypted.js';
 import { DSMRParser } from './dsmr.js';
-import { DEFAULT_FRAME_ENCODING } from '../util/frame-validation.js';
-import { DSMRError, DSMRStartOfFrameNotFoundError } from '../util/errors.js';
+import {
+  DEFAULT_FRAME_ENCODING,
+  isAsciiFrame,
+  isEncryptedFrame,
+} from '../util/frame-validation.js';
+import {
+  DSMRDecodeError,
+  DSMRDecryptionRequired,
+  DSMRError,
+  DSMRStartOfFrameNotFoundError,
+  DSMRTimeoutError,
+} from '../util/errors.js';
+import { ENCRYPTED_DSMR_HEADER_LEN, ENCRYPTED_DSMR_TELEGRAM_SOF } from '../util/encryption.js';
 
 export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
-  private telegram = '';
+  private telegram: Buffer = Buffer.alloc(0);
   private hasStartOfFrame = false;
   private eofRegex: RegExp;
   private boundOnData: UnencryptedDSMRStreamParser['onData'];
+  private boundOnFullFrameRequiredTimeout: UnencryptedDSMRStreamParser['onFullFrameRequiredTimeout'];
+  private detectEncryption: boolean;
+  private encoding: BufferEncoding;
+  private fullFrameRequiredTimeoutMs: number;
+  private fullFrameRequiredTimeout?: NodeJS.Timeout;
 
   constructor(
     private stream: Readable,
@@ -20,7 +36,12 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
     private callback: DSMRStreamCallback,
   ) {
     this.boundOnData = this.onData.bind(this);
+    this.boundOnFullFrameRequiredTimeout = this.onFullFrameRequiredTimeout.bind(this);
     this.stream.addListener('data', this.boundOnData);
+
+    this.detectEncryption = options.detectEncryption ?? true;
+    this.encoding = options.encoding ?? DEFAULT_FRAME_ENCODING;
+    this.fullFrameRequiredTimeoutMs = options.fullFrameRequiredWithinMs ?? 5000;
 
     // End of frame is \r\n!<CRC>\r\n with the CRC being optional as
     // it is only for DSMR 4 and up.
@@ -29,65 +50,136 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
   }
 
   private onData(dataRaw: Buffer) {
-    const data = dataRaw.toString(this.options.encoding ?? DEFAULT_FRAME_ENCODING);
+    this.telegram = Buffer.concat([this.telegram, dataRaw]);
+
+    // Detect encryption by checking if the header is present.
+    if (this.detectEncryption && !this.hasStartOfFrame) {
+      const { isEncrypted, isAscii, requiresMoreData } = this.checkEncryption();
+
+      if (requiresMoreData) return; // Wait for more data to arrive.
+
+      if (isEncrypted) {
+        const error = new DSMRDecryptionRequired();
+        error.withRawTelegram(this.telegram);
+        this.callback(error, undefined);
+        this.telegram = Buffer.alloc(0);
+        return;
+      }
+
+      if (!isAscii) {
+        const error = new DSMRDecodeError('Invalid frame (not in ascii range)');
+        error.withRawTelegram(this.telegram);
+        this.callback(error, undefined);
+        this.telegram = Buffer.alloc(0);
+        return;
+      }
+
+      // If we get here, the frame is not encrypted and is in ascii range.
+      // We can try parsing it as a normal DSMR frame.
+    }
 
     if (!this.hasStartOfFrame) {
-      const sofIndex = data.indexOf('/');
+      const sofIndex = this.telegram.indexOf('/');
 
       // Not yet a valid frame. Discard the data
       if (sofIndex === -1) {
         const error = new DSMRStartOfFrameNotFoundError();
-        error.withRawTelegram(Buffer.from(data, this.options.encoding ?? DEFAULT_FRAME_ENCODING));
+        error.withRawTelegram(this.telegram);
         this.callback(error, undefined);
+        this.telegram = Buffer.alloc(0);
         return;
       }
 
-      this.telegram = data.slice(sofIndex, data.length);
+      // Start a timeout within the full frame should be received.
+      // If this isn't done, it could happen that the `telegram` grows indefinitely.
+      this.fullFrameRequiredTimeout = setTimeout(
+        this.boundOnFullFrameRequiredTimeout,
+        this.fullFrameRequiredTimeoutMs,
+      );
+      this.telegram = this.telegram.subarray(sofIndex, this.telegram.length);
       this.hasStartOfFrame = true;
-    } else {
-      this.telegram += data;
     }
 
-    const regexResult = this.eofRegex.exec(this.telegram);
+    const eofRegexResult = this.eofRegex.exec(this.telegram.toString(this.encoding));
 
-    // End of telegram has not been reached
-    if (!regexResult) return;
+    // End of telegram has not been reached, wait for more data to arrive.
+    if (!eofRegexResult) return;
 
-    const endOfFrameIndex = regexResult.index + regexResult[0].length;
+    const endOfFrameIndex = eofRegexResult.index + eofRegexResult[0].length;
+
+    // Clear the full frame required timeout. The full frame
+    // has been received and the data buffer will be cleared.
+    clearTimeout(this.fullFrameRequiredTimeout);
 
     try {
       const result = DSMRParser({
-        telegram: this.telegram.slice(0, endOfFrameIndex),
+        telegram: this.telegram.subarray(0, endOfFrameIndex),
         newLineChars: this.options.newLineChars,
       });
 
       this.callback(null, result);
     } catch (error) {
       if (error instanceof DSMRError) {
-        error.withRawTelegram(
-          Buffer.from(this.telegram, this.options.encoding ?? DEFAULT_FRAME_ENCODING),
-        );
+        error.withRawTelegram(this.telegram);
       }
 
       this.callback(error, undefined);
     }
 
-    const remainingData = this.telegram.slice(endOfFrameIndex, this.telegram.length);
+    const remainingData = this.telegram.subarray(endOfFrameIndex, this.telegram.length);
     this.hasStartOfFrame = false;
-    this.telegram = '';
+    this.telegram = Buffer.alloc(0);
 
     // There might be more data in the buffer for the next telegram.
     if (remainingData.length > 0) {
-      this.onData(Buffer.from(remainingData, this.options.encoding ?? DEFAULT_FRAME_ENCODING));
+      this.onData(remainingData);
     }
   }
 
+  private checkEncryption() {
+    const encryptedSof = this.telegram.indexOf(ENCRYPTED_DSMR_TELEGRAM_SOF);
+
+    if (encryptedSof === -1) {
+      // There is no start of frame (for an encrypted frame) in the buffer.
+      return {
+        isEncrypted: false,
+        isAscii: isAsciiFrame(this.telegram),
+      };
+    }
+
+    // The header has a fixed length, so the telegram contain at least
+    // ENCRYPTED_DSMR_HEADER_LEN bytes after the start of frame.
+    const minimumTelegramLength = encryptedSof + ENCRYPTED_DSMR_HEADER_LEN;
+
+    if (this.telegram.length < minimumTelegramLength) {
+      return {
+        requiresMoreData: true,
+      };
+    }
+
+    return {
+      isEncrypted: isEncryptedFrame(this.telegram),
+      isAscii: isAsciiFrame(this.telegram),
+    };
+  }
+
+  private onFullFrameRequiredTimeout() {
+    const error = new DSMRTimeoutError();
+    error.withRawTelegram(this.telegram);
+    this.callback(error, undefined);
+
+    // Reset the entire state here, as the full frame was not received.
+    this.clear();
+  }
+
   destroy() {
+    this.clear();
     this.stream.removeListener('data', this.boundOnData);
   }
 
   clear() {
-    this.telegram = '';
+    clearTimeout(this.fullFrameRequiredTimeout);
+    this.telegram = Buffer.alloc(0);
     this.hasStartOfFrame = false;
   }
 

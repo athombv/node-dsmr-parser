@@ -17,7 +17,7 @@ describe('DSMR Parser', async () => {
       });
 
       assert.equal(parsed.raw, expectedOutput.raw);
-      assert.deepStrictEqual(parsed, expectedOutput);
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
     });
 
     it(`Parses ${testCase} with decryption`, async () => {
@@ -33,7 +33,7 @@ describe('DSMR Parser', async () => {
         decryptionKey: key,
       });
 
-      assert.deepStrictEqual(parsed, expectedOutput);
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
     });
   }
 

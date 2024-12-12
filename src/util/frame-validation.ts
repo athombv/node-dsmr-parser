@@ -1,17 +1,23 @@
 import { decodeHeader, ENCRYPTED_DSMR_TELEGRAM_SOF } from './encryption.js';
 
-export const DEFAULT_FRAME_ENCODING = 'ascii';
+export const DEFAULT_FRAME_ENCODING = 'binary';
+
+/**
+ * Check if a line contains only valid ascii characters.
+ *
+ * @note Need to disable `no-control-regex` rule because of the use of control characters.
+ */
+// eslint-disable-next-line no-control-regex
+const ASCII_REGEX = /[^\x00-\x7F]/;
 
 /**
  * Check if a line contains only valid ascii characters. If this is not the case, the line is either
  * encrypted or contains invalid characters.
+ *
+ * @note Doing this check with a regex compared to a loop or using `find` is around three times faster.
  */
 export const isAsciiFrame = (telegram: Buffer) => {
-  // eslint-disable-next-line no-control-regex
-  const nonAsciiRegex = /[^\x00-\x7F]/;
-  // Note: use utf8 encoding here, if ascii is parsed here it will always return true,
-  // because bytes above 0x7F will be converted to 0x00-0x7f.
-  return !nonAsciiRegex.test(telegram.toString('utf8'));
+  return !ASCII_REGEX.test(telegram.toString('binary'));
 };
 
 /** Check if the given frame is an encrypted frame. */

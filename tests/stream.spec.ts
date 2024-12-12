@@ -1,8 +1,15 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { describe, it, mock } from 'node:test';
 import { chunkBuffer, chunkString, encryptFrame, readTelegramFromFiles } from './test-utils.js';
-import { DSMRStartOfFrameNotFoundError, DSMR } from '../src/index.js';
+import {
+  DSMRStartOfFrameNotFoundError,
+  DSMR,
+  DSMRDecryptionRequired,
+  DSMRDecodeError,
+  DSMRTimeoutError,
+} from '../src/index.js';
+import { ENCRYPTED_DSMR_HEADER_LEN, ENCRYPTED_DSMR_TELEGRAM_SOF } from '../src/util/encryption.js';
 
 describe('DSMRStreamParser', () => {
   describe('Unencrypted', () => {
@@ -60,7 +67,11 @@ describe('DSMRStreamParser', () => {
 
       const instance = DSMR.parseFromStream(stream, {}, callbackMock);
 
-      stream.write('invalid telegram');
+      const data = 'invalid telegram xxx yyy';
+      // Make sure the telegram is at least ENCRYPTED_DSMR_HEADER_LEN long to
+      // allow encrypted frames to be detected.
+      assert.ok(data.length >= ENCRYPTED_DSMR_HEADER_LEN);
+      stream.write(data);
 
       stream.end();
       instance.destroy();
@@ -118,6 +129,81 @@ describe('DSMRStreamParser', () => {
         // @ts-expect-error output is not typed
         raw: output.raw + '\0',
       });
+    });
+
+    it('Throws an error if a full frame is not received in time', async (context) => {
+      context.mock.timers.enable();
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const fullFrameRequiredWithinMs = 5000;
+
+      const instance = DSMR.parseFromStream(
+        stream,
+        {
+          fullFrameRequiredWithinMs,
+          detectEncryption: false,
+        },
+        callbackMock,
+      );
+
+      stream.write('/'); // Start by writing the start of the telegram
+
+      // Then follow-up with invalid data.
+      // After a sof has been received, it should time out after the configured time.
+      const numberOfChunks = 5;
+      for (let i = 0; i < numberOfChunks; i++) {
+        stream.write('Invalid Data');
+        assert.equal(callbackMock.mock.calls.length, 0); // No callback should have been called yet.
+
+        context.mock.timers.tick(fullFrameRequiredWithinMs / numberOfChunks);
+      }
+
+      // Here it should have timed out and called the callback with an error.
+      assert.equal(callbackMock.mock.calls.length, 1);
+      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
+      assert.equal(instance.currentSize(), 0);
+
+      // Writing more data should trigger the sof error again.
+      stream.write('Invalid Data');
+      // And not trigger a timeout.
+      context.mock.timers.tick(fullFrameRequiredWithinMs);
+
+      assert.equal(callbackMock.mock.calls.length, 2);
+      assert.ok(callbackMock.mock.calls[1].arguments[0] instanceof DSMRStartOfFrameNotFoundError);
+      assert.equal(instance.currentSize(), 0);
+
+      instance.destroy();
+    });
+
+    it('Throws an error if a full frame is not received in time 2', async (context) => {
+      context.mock.timers.enable();
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const fullFrameRequiredWithinMs = 5000;
+
+      const instance = DSMR.parseFromStream(
+        stream,
+        {
+          fullFrameRequiredWithinMs,
+          detectEncryption: false,
+        },
+        callbackMock,
+      );
+
+      stream.write('/'); // Start by writing the start of the telegram
+
+      context.mock.timers.tick(fullFrameRequiredWithinMs);
+
+      // Here it should have timed out and called the callback with an error.
+      assert.equal(callbackMock.mock.calls.length, 1);
+      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
+      assert.equal(instance.currentSize(), 0);
+
+      instance.destroy();
     });
   });
 
@@ -227,6 +313,160 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
       assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
       assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output);
+    });
+
+    it('Detects an encrypted frame in non-encrypted mode', async () => {
+      const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
+      const decryptionKey = '0123456789ABCDEF';
+      const encrypted = encryptFrame({ frame: input, key: decryptionKey });
+      const chunks = chunkBuffer(encrypted, 1);
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const instance = DSMR.parseFromStream(
+        stream,
+        {
+          detectEncryption: true,
+        },
+        callbackMock,
+      );
+
+      for (const chunk of chunks) {
+        stream.write(chunk);
+      }
+
+      stream.end();
+      instance.destroy();
+
+      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRDecryptionRequired);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], undefined);
+
+      // If the encrypted data contains a start of frame in the final chunks, there could be remaining
+      // data left in the buffer, because it is waiting until it has enough data to detect the header of
+      // the encrypted frame.
+      assert.ok(instance.currentSize() < 2 * ENCRYPTED_DSMR_HEADER_LEN);
+
+      // Because everything is coming in as small chunks, it will be calling the callback multiple times.
+      // Each time it should be a DSMRStartOfFrameNotFoundError error, because only after the first chunks
+      // it should be able to detect that it is an encrypted frame.
+      for (let index = 1; index < callbackMock.mock.calls.length; index++) {
+        const error = callbackMock.mock.calls[index].arguments[0] as unknown;
+        assert.ok(error instanceof DSMRDecodeError && !(error instanceof DSMRDecryptionRequired));
+        assert.deepStrictEqual(callbackMock.mock.calls[index].arguments[1], undefined);
+      }
+    });
+
+    // Make sure that if the first chunk does not contain the
+    // full header, it will can still detect the encrypted frame when
+    it('Detects non-aligned encrypted frame', async () => {
+      const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
+      const decryptionKey = '0123456789ABCDEF';
+      const originalEncrypted = encryptFrame({ frame: input, key: decryptionKey });
+
+      const prefix = Buffer.from(
+        [...new Array<number>(ENCRYPTED_DSMR_HEADER_LEN - 1)].map(() => 0x00),
+      );
+
+      const encrypted = Buffer.concat([prefix, originalEncrypted]);
+      const chunks = chunkBuffer(encrypted, ENCRYPTED_DSMR_HEADER_LEN);
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const instance = DSMR.parseFromStream(
+        stream,
+        {
+          detectEncryption: true,
+        },
+        callbackMock,
+      );
+
+      for (const chunk of chunks) {
+        stream.write(chunk);
+      }
+
+      stream.end();
+      instance.destroy();
+
+      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRDecryptionRequired);
+      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], undefined);
+
+      // If the encrypted data contains a start of frame in the final chunks, there could be remaining
+      // data left in the buffer, because it is waiting until it has enough data to detect the header of
+      // the encrypted frame.
+      assert.ok(instance.currentSize() < 2 * ENCRYPTED_DSMR_HEADER_LEN);
+
+      // Because everything is coming in as small chunks, it will be calling the callback multiple times.
+      // Each time it should be a kind of DSMRDecodeError error, because only after the first chunks
+      // it should be able to detect that it is an encrypted frame.
+      for (let index = 1; index < callbackMock.mock.calls.length; index++) {
+        const error = callbackMock.mock.calls[index].arguments[0] as unknown;
+        assert.ok(error instanceof DSMRDecodeError && !(error instanceof DSMRDecryptionRequired));
+        assert.deepStrictEqual(callbackMock.mock.calls[index].arguments[1], undefined);
+      }
+    });
+
+    it('Throws an error if a full frame is not received in time', async (context) => {
+      context.mock.timers.enable();
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const fullFrameRequiredWithinMs = 5000;
+
+      const instance = DSMR.parseFromStream(
+        stream,
+        {
+          fullFrameRequiredWithinMs,
+          decryptionKey: '0123456789ABCDEF',
+        },
+        callbackMock,
+      );
+
+      const frame = encryptFrame({ frame: '', key: '0123456789ABCDEF' });
+      const header = frame.subarray(0, ENCRYPTED_DSMR_HEADER_LEN);
+
+      stream.write(header); // Write the header, but not the rest of the frame.
+
+      context.mock.timers.tick(fullFrameRequiredWithinMs);
+
+      // Here it should have timed out and called the callback with an error.
+      assert.equal(callbackMock.mock.calls.length, 1);
+      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
+      assert.equal(instance.currentSize(), 0);
+
+      instance.destroy();
+    });
+
+    it('Throws an error if a full frame is not received in time 2', async (context) => {
+      context.mock.timers.enable();
+
+      const stream = new PassThrough();
+      const callbackMock = mock.fn();
+
+      const fullFrameRequiredWithinMs = 5000;
+
+      const instance = DSMR.parseFromStream(
+        stream,
+        {
+          fullFrameRequiredWithinMs,
+          decryptionKey: '0123456789ABCDEF',
+          detectEncryption: false,
+        },
+        callbackMock,
+      );
+
+      stream.write(Buffer.from([ENCRYPTED_DSMR_TELEGRAM_SOF])); // Start by writing the start of the telegram
+
+      context.mock.timers.tick(fullFrameRequiredWithinMs);
+
+      // Here it should have timed out and called the callback with an error.
+      assert.equal(callbackMock.mock.calls.length, 1);
+      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
+      assert.equal(instance.currentSize(), 0);
+
+      instance.destroy();
     });
   });
 });

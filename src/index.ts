@@ -9,6 +9,7 @@ export type DSMRParserOptions =
       telegram: string;
       /** New line characters */
       newLineChars?: '\r\n' | '\n';
+      /** Enable the encryption detection mechanism. Enabled by default */
       decryptionKey?: never;
       encoding?: never;
     }
