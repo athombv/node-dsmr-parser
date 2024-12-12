@@ -10,7 +10,7 @@ import {
 } from '../util/encryption.js';
 import { DEFAULT_FRAME_ENCODING } from '../util/frame-validation.js';
 import { DSMRParser } from './dsmr.js';
-import { DSMRError, DSMRStartOfFrameNotFoundError } from '../util/errors.js';
+import { DSMRError, DSMRStartOfFrameNotFoundError, DSMRTimeoutError } from '../util/errors.js';
 
 export type DSMRStreamParser = {
   /** Stop the stream parser. */
@@ -22,7 +22,13 @@ export type DSMRStreamParser = {
 };
 
 export type DSMRStreamParserOptions = Omit<DSMRParserOptions, 'telegram'> & {
+  /** Should the non-encrypted mode try to detect if the frame that is received is encrypted? */
   detectEncryption?: boolean;
+  /**
+   * Maximum time in milliseconds to wait for a full frame to be received. The timer starts when a
+   * valid start of frame/header is received.
+   */
+  fullFrameRequiredWithinMs?: number;
 };
 
 export type DSMRStreamCallback = (error: unknown, result?: DSMRParserResult) => void;
@@ -31,7 +37,10 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
   private hasStartOfFrame = false;
   private header: ReturnType<typeof decodeHeader> | undefined = undefined;
   private telegram = Buffer.alloc(0);
+  private fullFrameRequiredWithinMs: number;
+  private fullFrameRequiredTimeout?: NodeJS.Timeout;
   private boundOnData: EncryptedDSMRStreamParser['onData'];
+  private boundOnFullFrameRequiredTimeout: EncryptedDSMRStreamParser['onFullFrameRequiredTimeout'];
 
   constructor(
     private stream: Readable,
@@ -39,7 +48,10 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
     private callback: DSMRStreamCallback,
   ) {
     this.boundOnData = this.onData.bind(this);
+    this.boundOnFullFrameRequiredTimeout = this.onFullFrameRequiredTimeout.bind(this);
+
     this.stream.addListener('data', this.boundOnData);
+    this.fullFrameRequiredWithinMs = options.fullFrameRequiredWithinMs ?? 5000;
   }
 
   private onData(data: Buffer) {
@@ -55,6 +67,10 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
         return;
       }
 
+      this.fullFrameRequiredTimeout = setTimeout(
+        this.boundOnFullFrameRequiredTimeout,
+        this.fullFrameRequiredWithinMs,
+      );
       this.telegram = data.subarray(sofIndex, data.length);
       this.hasStartOfFrame = true;
     } else {
@@ -83,6 +99,8 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
 
     // Wait until full telegram is received
     if (this.telegram.length < totalLength) return;
+
+    clearTimeout(this.fullFrameRequiredTimeout);
 
     try {
       const content = this.telegram.subarray(ENCRYPTED_DSMR_HEADER_LEN, this.header.contentLength);
@@ -120,11 +138,21 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
     }
   }
 
+  private onFullFrameRequiredTimeout() {
+    const error = new DSMRTimeoutError();
+    error.withRawTelegram(this.telegram);
+    this.callback(error, undefined);
+
+    // Reset the entire state here, as the full frame was not received.
+    this.clear();
+  }
+
   destroy(): void {
     this.stream.removeListener('data', this.boundOnData);
   }
 
   clear(): void {
+    clearTimeout(this.fullFrameRequiredTimeout);
     this.hasStartOfFrame = false;
     this.header = undefined;
     this.telegram = Buffer.alloc(0);
