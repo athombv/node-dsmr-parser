@@ -21,7 +21,9 @@ export type DSMRStreamParser = {
   currentSize(): number;
 };
 
-export type DSMRStreamParserOptions = Omit<DSMRParserOptions, 'telegram'>;
+export type DSMRStreamParserOptions = Omit<DSMRParserOptions, 'telegram'> & {
+  detectEncryption?: boolean;
+};
 
 export type DSMRStreamCallback = (error: unknown, result?: DSMRParserResult) => void;
 

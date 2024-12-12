@@ -18,6 +18,7 @@ export default tseslint.config(
     },
     rules: {
       ...prettier.rules,
+      'no-console': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       '@typescript-eslint/require-await': 'off',
       'no-unused-vars': 'off',
