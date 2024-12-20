@@ -5,12 +5,31 @@ import { DSMRParserError } from '../util/errors.js';
 import { DEFAULT_FRAME_ENCODING } from '../util/frame-validation.js';
 import { COSEM_PARSERS } from './cosem.js';
 
-const decodeCOSEMObject = (line: string, result: DSMRParserResult, options: DSMRParserOptions) => {
+const decodeCOSEMObject = ({
+  line,
+  lines,
+  lineNumber,
+  result,
+  options,
+}: {
+  line: string;
+  lines: string[];
+  lineNumber: number;
+  result: DSMRParserResult;
+  options: DSMRParserOptions;
+}) => {
   for (const { regex, parser } of COSEM_PARSERS) {
     const regexResult = regex.exec(line);
 
     if (regexResult) {
-      parser(regexResult, result, options);
+      parser({
+        regexResult,
+        result,
+        options,
+        line,
+        lines,
+        lineNumber,
+      });
       return true;
     }
   }
@@ -54,7 +73,7 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
     mBus: {},
   };
 
-  for (const line of lines) {
+  for (const [lineNumber, line] of lines.entries()) {
     if (line.startsWith('/')) {
       // Beginning of telegram
       result.header.xxx = line.slice(1, 4);
@@ -72,7 +91,13 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
       // skip empty lines
     } else {
       // Decode cosem object
-      const isLineParsed = decodeCOSEMObject(line, result, options);
+      const isLineParsed = decodeCOSEMObject({
+        result,
+        options,
+        line,
+        lines,
+        lineNumber,
+      });
 
       if (!isLineParsed) {
         result.metadata.unknownLines = result.metadata.unknownLines ?? [];

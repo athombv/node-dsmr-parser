@@ -94,6 +94,7 @@ export type DSMRParserResult = {
       value?: number;
       unit?: string;
       timestamp?: string; // TODO: Parse to date object
+      recordingPeriodMinutes?: number; // DSMR
     }
   >;
   crc?: {
