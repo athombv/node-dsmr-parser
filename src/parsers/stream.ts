@@ -1,6 +1,4 @@
-import { Readable } from 'node:stream';
 import {
-  DSMRStreamCallback,
   EncryptedDSMRStreamParser,
   DSMRStreamParser as DSMRStreamParserType,
   DSMRStreamParserOptions,
@@ -16,14 +14,10 @@ import { UnencryptedDSMRStreamParser } from './stream-unencrypted.js';
  * @param callback Method that is called when a telegram is parsed or when an error occurred.
  * @returns Method to stop the stream parser.
  */
-export const DSMRStreamParser = (
-  stream: Readable,
-  options: Omit<DSMRStreamParserOptions, 'telegram'>,
-  callback: DSMRStreamCallback,
-): DSMRStreamParserType => {
+export const createDSMRStreamParser = (options: DSMRStreamParserOptions): DSMRStreamParserType => {
   if (options.decryptionKey) {
-    return new EncryptedDSMRStreamParser(stream, options, callback);
+    return new EncryptedDSMRStreamParser(options);
   }
 
-  return new UnencryptedDSMRStreamParser(stream, options, callback);
+  return new UnencryptedDSMRStreamParser(options);
 };
