@@ -1,3 +1,4 @@
+import { PassThrough, Transform } from 'node:stream';
 import {
   EncryptedDSMRStreamParser,
   DSMRStreamParser as DSMRStreamParserType,
@@ -20,4 +21,33 @@ export const createDSMRStreamParser = (options: DSMRStreamParserOptions): DSMRSt
   }
 
   return new UnencryptedDSMRStreamParser(options);
+};
+
+/** Create a DSMR stream transformer that reads data from a stream and pushes parsed telegrams. */
+export const createDSMRStreamTransformer = (
+  options: Omit<DSMRStreamParserOptions, 'callback' | 'stream'>,
+) => {
+  const passthrough = new PassThrough();
+
+  const transformer = new Transform({
+    objectMode: true,
+    transform(chunk: Buffer, _encoding, callback) {
+      passthrough.write(chunk);
+      callback();
+    },
+  });
+
+  const parser = createDSMRStreamParser({
+    ...options,
+    stream: passthrough,
+    callback: (error, result) => {
+      transformer.push({ error, result });
+    },
+  });
+
+  transformer.on('close', () => {
+    parser.destroy();
+  });
+
+  return transformer;
 };
