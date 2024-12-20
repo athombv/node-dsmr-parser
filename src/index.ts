@@ -1,6 +1,6 @@
 import { DSMRParser } from './parsers/dsmr.js';
 import { getMbusDevice, MBUS_DEVICE_IDS } from './parsers/mbus.js';
-import { createDSMRStreamParser } from './parsers/stream.js';
+import { createDSMRStreamParser, createDSMRStreamTransformer } from './parsers/stream.js';
 import { DSMRFrameValid } from './util/frame-validation.js';
 
 export type DSMRParserOptions =
@@ -108,6 +108,7 @@ export * from './util/errors.js';
 export const DSMR = {
   parse: DSMRParser,
   createStreamParser: createDSMRStreamParser,
+  createStreamTransformer: createDSMRStreamTransformer,
   isValidFrame: DSMRFrameValid,
   MBUS_DEVICE_IDS,
   getMbusDevice,
