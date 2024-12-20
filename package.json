@@ -14,7 +14,8 @@
     "build": "tsc",
     "prettier": "prettier . --write",
     "prettier:check": "prettier . --check",
-    "parse-telegram": "tsx ./scripts/parse-telegram.ts"
+    "tool:parse-telegram": "tsx ./tools/parse-telegram.ts",
+    "tool:update-test-telegrams": "tsx ./tools/update-test-telegrams.ts"
   },
   "repository": {
     "type": "git",
