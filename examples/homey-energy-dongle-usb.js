@@ -24,7 +24,7 @@ if (!serialPortPath) {
 
   if (possiblePorts.length === 0) {
     console.log(
-      'Usage: npx tsx examples/homey-energy-dongle-usb.ts <port> <decryption key (optional)>',
+      'Usage: npx tsx examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
     );
     console.log('No Homey Energy Dongle found.');
     process.exit(1);
@@ -34,7 +34,7 @@ if (!serialPortPath) {
       console.log(`- ${port.path}`);
     }
     console.log(
-      'Usage: npx tsx examples/homey-energy-dongle-usb.ts <port> <decryption key (optional)>',
+      'Usage: npx tsx examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
     );
     process.exit(1);
   } else {
