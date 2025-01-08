@@ -24,7 +24,7 @@ if (!serialPortPath) {
 
   if (possiblePorts.length === 0) {
     console.log(
-      'Usage: npx tsx examples/homey-energy-dongle-usb.ts <port> <decryption key (optional)>',
+      'Usage: npx tsx examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
     );
     console.log('No Homey Energy Dongle found.');
     process.exit(1);
@@ -34,7 +34,7 @@ if (!serialPortPath) {
       console.log(`- ${port.path}`);
     }
     console.log(
-      'Usage: npx tsx examples/homey-energy-dongle-usb.ts <port> <decryption key (optional)>',
+      'Usage: npx tsx examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
     );
     process.exit(1);
   } else {
@@ -50,7 +50,7 @@ if (DECRYPTION_KEY) {
 
 // Use node-serialport to handle the serial connection to the Homey Energy Dongle.
 // The baud rate will be 115200, with 8 data bits, 1 stop bit, and no parity.
-const port = new SerialPort(
+const serialPort = new SerialPort(
   {
     path: serialPortPath,
     baudRate: 115200,
@@ -67,20 +67,19 @@ const port = new SerialPort(
 
 // Data available on the serial port is raw data from the USB serial interface. This data will be transmitted in several chunks,
 // The input is piped through several transform streams to parse the JSON objects and extract the raw meter data.
-port
-  // 1. Each json object will be separated by a newline.
-  //    In theory a JSON object could contain a newline, but Homey Energy Dongle will always output
-  //    flattened JSON objects, so this is not a concern.
-  .pipe(
+stream
+  .pipeline(
+    serialPort,
+    // 1. Each json object will be separated by a newline.
+    //    In theory a JSON object could contain a newline, but Homey Energy Dongle will always output
+    //    flattened JSON objects, so this is not a concern.
     new ReadlineParser({
       delimiter: '\n',
       encoding: 'binary',
     }),
-  )
-  // 2. Parse the lines as JSON objects and filter out the DSMR telegrams
-  //    The DSMR telegram JSON object will look like this:
-  //    { "event": "dsmr_telegram", "data": "..." }
-  .pipe(
+    // 2. Parse the lines as JSON objects and filter out the DSMR telegrams
+    //    The DSMR telegram JSON object will look like this:
+    //    { "event": "dsmr_telegram", "data": "..." }
     new stream.Transform({
       transform(chunk, _encoding, callback) {
         try {
@@ -98,20 +97,24 @@ port
         callback();
       },
     }),
-  )
-  // 3. Parse the raw meter data using the DSMR parser
-  .pipe(
+    // 3. Parse the raw meter data using the DSMR parser
     DSMR.createStreamTransformer({
       decryptionKey: DECRYPTION_KEY,
       detectEncryption: true,
     }),
+    // 4. Error handler for when an error occurs in the stream. Note that the stream will end when an error occurs here.
+    (err) => {
+      if (err) {
+        console.error('Error in pipeline:', err);
+      }
+    },
   )
-  // 4. Log the data. Because `DSMR.createStreamTransformer` uses object mode it can emit
+  // 5. Log the data. Because `DSMR.createStreamTransformer` uses object mode it can emit
   //    objects in the stream. The error will be set when parsing failed, and the result will be set when parsing succeeded.
   .on('data', ({ error, result }) => {
     if (error instanceof DSMRError) {
-      console.error('Error parsing DSMR data:', err.message);
-      console.error('Raw data:', err.rawTelegram?.toString('hex'));
+      console.error('Error parsing DSMR data:', error.message);
+      console.error('Raw data:', error.rawTelegram?.toString('hex'));
     } else if (error) {
       console.error('Error:', error);
     } else {
@@ -121,17 +124,13 @@ port
       delete result.raw;
       console.log(result);
     }
-  })
-  // 5. Handle errors from the stream
-  .on('error', (err) => {
-    console.error('Stream errored:', err);
   });
 
 // Make sure to close the port when the process exits
 process.on('SIGINT', () => {
   console.log('Disconnecting...');
 
-  port.close((err) => {
+  serialPort.close((err) => {
     if (err) {
       console.error('Error closing port:', err);
     } else {
