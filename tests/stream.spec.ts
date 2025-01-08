@@ -21,9 +21,9 @@ describe('DSMRStreamParser', () => {
       const chunks = chunkString(input, 10);
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(stream, {}, callbackMock);
+      const instance = DSMR.createStreamParser({ stream, callback });
 
       for (const chunk of chunks) {
         stream.write(chunk);
@@ -31,9 +31,9 @@ describe('DSMRStreamParser', () => {
 
       stream.end();
       instance.destroy();
-      assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls.length, 1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
     });
 
     it('Parses two unencrypted telegrams', async () => {
@@ -45,27 +45,27 @@ describe('DSMRStreamParser', () => {
       );
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(stream, {}, callbackMock);
+      const instance = DSMR.createStreamParser({ stream, callback });
 
       stream.write(input1 + input2);
 
       stream.end();
       instance.destroy();
 
-      assert.deepStrictEqual(callbackMock.mock.calls.length, 2);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output1);
-      assert.deepStrictEqual(callbackMock.mock.calls[1].arguments[0], null);
-      assert.deepStrictEqual(callbackMock.mock.calls[1].arguments[1], output2);
+      assert.deepStrictEqual(callback.mock.calls.length, 2);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output1);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output2);
     });
 
     it('Throws error when telegram is invalid', async () => {
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(stream, {}, callbackMock);
+      const instance = DSMR.createStreamParser({ stream, callback });
 
       const data = 'invalid telegram xxx yyy';
       // Make sure the telegram is at least ENCRYPTED_DSMR_HEADER_LEN long to
@@ -76,9 +76,9 @@ describe('DSMRStreamParser', () => {
       stream.end();
       instance.destroy();
 
-      assert.equal(callbackMock.mock.calls.length, 1);
-      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRStartOfFrameNotFoundError);
-      assert.equal(callbackMock.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls.length, 1);
+      assert.ok(callback.mock.calls[0].arguments[0] instanceof DSMRStartOfFrameNotFoundError);
+      assert.equal(callback.mock.calls[0].arguments[1], undefined);
     });
 
     it('Parses a telegram with a different newline character', async () => {
@@ -95,17 +95,21 @@ describe('DSMRStreamParser', () => {
       output.raw = output.raw.replace(/\r\n/g, '\n');
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(stream, { newLineChars: '\n' }, callbackMock);
+      const instance = DSMR.createStreamParser({
+        stream,
+        callback,
+        newLineChars: '\n',
+      });
       stream.write(input);
 
       stream.end();
       instance.destroy();
 
-      assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls.length, 1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
     });
 
     it("Doesn't throw error after receiving null character", async () => {
@@ -115,16 +119,16 @@ describe('DSMRStreamParser', () => {
       );
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(stream, {}, callbackMock);
+      const instance = DSMR.createStreamParser({ stream, callback });
       stream.write(input + '\0');
       stream.end();
       instance.destroy();
 
-      assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], {
+      assert.deepStrictEqual(callback.mock.calls.length, 1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], {
         ...output,
         // @ts-expect-error output is not typed
         raw: output.raw + '\0',
@@ -135,18 +139,16 @@ describe('DSMRStreamParser', () => {
       context.mock.timers.enable();
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
       const fullFrameRequiredWithinMs = 5000;
 
-      const instance = DSMR.parseFromStream(
+      const instance = DSMR.createStreamParser({
         stream,
-        {
-          fullFrameRequiredWithinMs,
-          detectEncryption: false,
-        },
-        callbackMock,
-      );
+        callback,
+        fullFrameRequiredWithinMs,
+        detectEncryption: false,
+      });
 
       stream.write('/'); // Start by writing the start of the telegram
 
@@ -155,14 +157,14 @@ describe('DSMRStreamParser', () => {
       const numberOfChunks = 5;
       for (let i = 0; i < numberOfChunks; i++) {
         stream.write('Invalid Data');
-        assert.equal(callbackMock.mock.calls.length, 0); // No callback should have been called yet.
+        assert.equal(callback.mock.calls.length, 0); // No callback should have been called yet.
 
         context.mock.timers.tick(fullFrameRequiredWithinMs / numberOfChunks);
       }
 
       // Here it should have timed out and called the callback with an error.
-      assert.equal(callbackMock.mock.calls.length, 1);
-      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
+      assert.equal(callback.mock.calls.length, 1);
+      assert.ok(callback.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
       assert.equal(instance.currentSize(), 0);
 
       // Writing more data should trigger the sof error again.
@@ -170,8 +172,8 @@ describe('DSMRStreamParser', () => {
       // And not trigger a timeout.
       context.mock.timers.tick(fullFrameRequiredWithinMs);
 
-      assert.equal(callbackMock.mock.calls.length, 2);
-      assert.ok(callbackMock.mock.calls[1].arguments[0] instanceof DSMRStartOfFrameNotFoundError);
+      assert.equal(callback.mock.calls.length, 2);
+      assert.ok(callback.mock.calls[1].arguments[0] instanceof DSMRStartOfFrameNotFoundError);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();
@@ -181,26 +183,24 @@ describe('DSMRStreamParser', () => {
       context.mock.timers.enable();
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
       const fullFrameRequiredWithinMs = 5000;
 
-      const instance = DSMR.parseFromStream(
+      const instance = DSMR.createStreamParser({
         stream,
-        {
-          fullFrameRequiredWithinMs,
-          detectEncryption: false,
-        },
-        callbackMock,
-      );
+        callback,
+        fullFrameRequiredWithinMs,
+        detectEncryption: false,
+      });
 
       stream.write('/'); // Start by writing the start of the telegram
 
       context.mock.timers.tick(fullFrameRequiredWithinMs);
 
       // Here it should have timed out and called the callback with an error.
-      assert.equal(callbackMock.mock.calls.length, 1);
-      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
+      assert.equal(callback.mock.calls.length, 1);
+      assert.ok(callback.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();
@@ -217,9 +217,13 @@ describe('DSMRStreamParser', () => {
       const chunks = chunkBuffer(encrypted, 10);
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(stream, { decryptionKey }, callbackMock);
+      const instance = DSMR.createStreamParser({
+        stream,
+        callback,
+        decryptionKey,
+      });
 
       for (const chunk of chunks) {
         stream.write(chunk);
@@ -227,9 +231,9 @@ describe('DSMRStreamParser', () => {
 
       stream.end();
       instance.destroy();
-      assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls.length, 1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
     });
 
     it('Parses two encrypted telegrams', async () => {
@@ -245,40 +249,44 @@ describe('DSMRStreamParser', () => {
       const encrypted2 = encryptFrame({ frame: input2, key: decryptionKey });
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(stream, { decryptionKey }, callbackMock);
+      const instance = DSMR.createStreamParser({
+        stream,
+        callback,
+        decryptionKey,
+      });
 
       stream.write(Buffer.concat([encrypted1, encrypted2]));
 
       stream.end();
       instance.destroy();
 
-      assert.deepStrictEqual(callbackMock.mock.calls.length, 2);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output1);
-      assert.deepStrictEqual(callbackMock.mock.calls[1].arguments[0], null);
-      assert.deepStrictEqual(callbackMock.mock.calls[1].arguments[1], output2);
+      assert.deepStrictEqual(callback.mock.calls.length, 2);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output1);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output2);
     });
 
     it('Throws error when telegram is invalid', async () => {
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(
+      const instance = DSMR.createStreamParser({
         stream,
-        { decryptionKey: '0123456789ABCDEF' },
-        callbackMock,
-      );
+        callback,
+        decryptionKey: '0123456789ABCDEF',
+      });
 
       stream.write('invalid telegram');
 
       stream.end();
       instance.destroy();
 
-      assert.equal(callbackMock.mock.calls.length, 1);
-      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRStartOfFrameNotFoundError);
-      assert.equal(callbackMock.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls.length, 1);
+      assert.ok(callback.mock.calls[0].arguments[0] instanceof DSMRStartOfFrameNotFoundError);
+      assert.equal(callback.mock.calls[0].arguments[1], undefined);
     });
 
     it('Parses a telegram with a different newline character', async () => {
@@ -298,21 +306,22 @@ describe('DSMRStreamParser', () => {
       const encrypted = encryptFrame({ frame: input, key: decryptionKey });
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(
+      const instance = DSMR.createStreamParser({
         stream,
-        { newLineChars: '\n', decryptionKey },
-        callbackMock,
-      );
+        callback,
+        newLineChars: '\n',
+        decryptionKey,
+      });
       stream.write(encrypted);
 
       stream.end();
       instance.destroy();
 
-      assert.deepStrictEqual(callbackMock.mock.calls.length, 1);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls.length, 1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
     });
 
     it('Detects an encrypted frame in non-encrypted mode', async () => {
@@ -322,15 +331,13 @@ describe('DSMRStreamParser', () => {
       const chunks = chunkBuffer(encrypted, 1);
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(
+      const instance = DSMR.createStreamParser({
         stream,
-        {
-          detectEncryption: true,
-        },
-        callbackMock,
-      );
+        callback,
+        detectEncryption: true,
+      });
 
       for (const chunk of chunks) {
         stream.write(chunk);
@@ -339,8 +346,8 @@ describe('DSMRStreamParser', () => {
       stream.end();
       instance.destroy();
 
-      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRDecryptionRequired);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], undefined);
+      assert.ok(callback.mock.calls[0].arguments[0] instanceof DSMRDecryptionRequired);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], undefined);
 
       // If the encrypted data contains a start of frame in the final chunks, there could be remaining
       // data left in the buffer, because it is waiting until it has enough data to detect the header of
@@ -350,10 +357,10 @@ describe('DSMRStreamParser', () => {
       // Because everything is coming in as small chunks, it will be calling the callback multiple times.
       // Each time it should be a DSMRStartOfFrameNotFoundError error, because only after the first chunks
       // it should be able to detect that it is an encrypted frame.
-      for (let index = 1; index < callbackMock.mock.calls.length; index++) {
-        const error = callbackMock.mock.calls[index].arguments[0] as unknown;
+      for (let index = 1; index < callback.mock.calls.length; index++) {
+        const error = callback.mock.calls[index].arguments[0] as unknown;
         assert.ok(error instanceof DSMRDecodeError && !(error instanceof DSMRDecryptionRequired));
-        assert.deepStrictEqual(callbackMock.mock.calls[index].arguments[1], undefined);
+        assert.deepStrictEqual(callback.mock.calls[index].arguments[1], undefined);
       }
     });
 
@@ -372,15 +379,13 @@ describe('DSMRStreamParser', () => {
       const chunks = chunkBuffer(encrypted, ENCRYPTED_DSMR_HEADER_LEN);
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
-      const instance = DSMR.parseFromStream(
+      const instance = DSMR.createStreamParser({
         stream,
-        {
-          detectEncryption: true,
-        },
-        callbackMock,
-      );
+        callback,
+        detectEncryption: true,
+      });
 
       for (const chunk of chunks) {
         stream.write(chunk);
@@ -389,8 +394,8 @@ describe('DSMRStreamParser', () => {
       stream.end();
       instance.destroy();
 
-      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRDecryptionRequired);
-      assert.deepStrictEqual(callbackMock.mock.calls[0].arguments[1], undefined);
+      assert.ok(callback.mock.calls[0].arguments[0] instanceof DSMRDecryptionRequired);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], undefined);
 
       // If the encrypted data contains a start of frame in the final chunks, there could be remaining
       // data left in the buffer, because it is waiting until it has enough data to detect the header of
@@ -400,10 +405,10 @@ describe('DSMRStreamParser', () => {
       // Because everything is coming in as small chunks, it will be calling the callback multiple times.
       // Each time it should be a kind of DSMRDecodeError error, because only after the first chunks
       // it should be able to detect that it is an encrypted frame.
-      for (let index = 1; index < callbackMock.mock.calls.length; index++) {
-        const error = callbackMock.mock.calls[index].arguments[0] as unknown;
+      for (let index = 1; index < callback.mock.calls.length; index++) {
+        const error = callback.mock.calls[index].arguments[0] as unknown;
         assert.ok(error instanceof DSMRDecodeError && !(error instanceof DSMRDecryptionRequired));
-        assert.deepStrictEqual(callbackMock.mock.calls[index].arguments[1], undefined);
+        assert.deepStrictEqual(callback.mock.calls[index].arguments[1], undefined);
       }
     });
 
@@ -411,18 +416,16 @@ describe('DSMRStreamParser', () => {
       context.mock.timers.enable();
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
       const fullFrameRequiredWithinMs = 5000;
 
-      const instance = DSMR.parseFromStream(
+      const instance = DSMR.createStreamParser({
         stream,
-        {
-          fullFrameRequiredWithinMs,
-          decryptionKey: '0123456789ABCDEF',
-        },
-        callbackMock,
-      );
+        callback,
+        fullFrameRequiredWithinMs,
+        decryptionKey: '0123456789ABCDEF',
+      });
 
       const frame = encryptFrame({ frame: '', key: '0123456789ABCDEF' });
       const header = frame.subarray(0, ENCRYPTED_DSMR_HEADER_LEN);
@@ -432,8 +435,8 @@ describe('DSMRStreamParser', () => {
       context.mock.timers.tick(fullFrameRequiredWithinMs);
 
       // Here it should have timed out and called the callback with an error.
-      assert.equal(callbackMock.mock.calls.length, 1);
-      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
+      assert.equal(callback.mock.calls.length, 1);
+      assert.ok(callback.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();
@@ -443,27 +446,25 @@ describe('DSMRStreamParser', () => {
       context.mock.timers.enable();
 
       const stream = new PassThrough();
-      const callbackMock = mock.fn();
+      const callback = mock.fn();
 
       const fullFrameRequiredWithinMs = 5000;
 
-      const instance = DSMR.parseFromStream(
+      const instance = DSMR.createStreamParser({
         stream,
-        {
-          fullFrameRequiredWithinMs,
-          decryptionKey: '0123456789ABCDEF',
-          detectEncryption: false,
-        },
-        callbackMock,
-      );
+        callback,
+        fullFrameRequiredWithinMs,
+        decryptionKey: '0123456789ABCDEF',
+        detectEncryption: false,
+      });
 
       stream.write(Buffer.from([ENCRYPTED_DSMR_TELEGRAM_SOF])); // Start by writing the start of the telegram
 
       context.mock.timers.tick(fullFrameRequiredWithinMs);
 
       // Here it should have timed out and called the callback with an error.
-      assert.equal(callbackMock.mock.calls.length, 1);
-      assert.ok(callbackMock.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
+      assert.equal(callback.mock.calls.length, 1);
+      assert.ok(callback.mock.calls[0].arguments[0] instanceof DSMRTimeoutError);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();

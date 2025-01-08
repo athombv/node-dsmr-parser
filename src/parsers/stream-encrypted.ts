@@ -22,6 +22,10 @@ export type DSMRStreamParser = {
 };
 
 export type DSMRStreamParserOptions = Omit<DSMRParserOptions, 'telegram'> & {
+  /** The stream which is going to provide the data */
+  stream: Readable;
+  /** The callback that will be called when a telegram was parsed. */
+  callback: DSMRStreamCallback;
   /** Should the non-encrypted mode try to detect if the frame that is received is encrypted? */
   detectEncryption?: boolean;
   /**
@@ -42,15 +46,11 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
   private boundOnData: EncryptedDSMRStreamParser['onData'];
   private boundOnFullFrameRequiredTimeout: EncryptedDSMRStreamParser['onFullFrameRequiredTimeout'];
 
-  constructor(
-    private stream: Readable,
-    private options: DSMRStreamParserOptions,
-    private callback: DSMRStreamCallback,
-  ) {
+  constructor(private options: DSMRStreamParserOptions) {
     this.boundOnData = this.onData.bind(this);
     this.boundOnFullFrameRequiredTimeout = this.onFullFrameRequiredTimeout.bind(this);
 
-    this.stream.addListener('data', this.boundOnData);
+    this.options.stream.addListener('data', this.boundOnData);
     this.fullFrameRequiredWithinMs = options.fullFrameRequiredWithinMs ?? 5000;
   }
 
@@ -63,7 +63,7 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
         const error = new DSMRStartOfFrameNotFoundError();
         error.withRawTelegram(data);
 
-        this.callback(error, undefined);
+        this.options.callback(error, undefined);
         return;
       }
 
@@ -87,7 +87,7 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
           error.withRawTelegram(this.telegram);
         }
 
-        this.callback(error, undefined);
+        this.options.callback(error, undefined);
         return;
       }
     }
@@ -117,13 +117,13 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
         newLineChars: this.options.newLineChars,
       });
 
-      this.callback(null, result);
+      this.options.callback(null, result);
     } catch (error) {
       if (error instanceof DSMRError) {
         error.withRawTelegram(this.telegram);
       }
 
-      this.callback(error, undefined);
+      this.options.callback(error, undefined);
     }
 
     const remainingData = this.telegram.subarray(totalLength, this.telegram.length);
@@ -141,14 +141,14 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
   private onFullFrameRequiredTimeout() {
     const error = new DSMRTimeoutError();
     error.withRawTelegram(this.telegram);
-    this.callback(error, undefined);
+    this.options.callback(error, undefined);
 
     // Reset the entire state here, as the full frame was not received.
     this.clear();
   }
 
   destroy(): void {
-    this.stream.removeListener('data', this.boundOnData);
+    this.options.stream.removeListener('data', this.boundOnData);
   }
 
   clear(): void {

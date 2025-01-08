@@ -1,6 +1,6 @@
 import { DSMRParser } from './parsers/dsmr.js';
 import { getMbusDevice, MBUS_DEVICE_IDS } from './parsers/mbus.js';
-import { DSMRStreamParser } from './parsers/stream.js';
+import { createDSMRStreamParser, createDSMRStreamTransformer } from './parsers/stream.js';
 import { DSMRFrameValid } from './util/frame-validation.js';
 
 export type DSMRParserOptions =
@@ -94,6 +94,7 @@ export type DSMRParserResult = {
       value?: number;
       unit?: string;
       timestamp?: string; // TODO: Parse to date object
+      recordingPeriodMinutes?: number; // DSMR
     }
   >;
   crc?: {
@@ -106,7 +107,8 @@ export * from './util/errors.js';
 
 export const DSMR = {
   parse: DSMRParser,
-  parseFromStream: DSMRStreamParser,
+  createStreamParser: createDSMRStreamParser,
+  createStreamTransformer: createDSMRStreamTransformer,
   isValidFrame: DSMRFrameValid,
   MBUS_DEVICE_IDS,
   getMbusDevice,

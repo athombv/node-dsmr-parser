@@ -8,7 +8,9 @@ This module can parse Dutch Smart Meter Requirements (DSMR) messages, and return
 $ npm i @athombv/dsmr-parser
 ```
 
-## Example
+## Examples
+
+### Parsing a DSMR frame
 
 ```javascript
 import { DSMR } from '@athombv/dsmr-parser';
@@ -105,4 +107,35 @@ Result: {
   },
   crc: { value: 61231, valid: false }
 }
+```
+
+### Using Homey Energy Dongle
+
+When you connect a PC to Homey Energy Dongle, you can read the raw data from the meter from Homey Energy Dongle's USB port. An example
+script of how to do this is located in [`examples/homey-energy-dongle-usb.js`](./examples/homey-energy-dongle-usb.js). To run this example you need to:
+
+1. Have NodeJS and git installed on your system
+2. Open a terminal window
+3. Clone this repository
+
+```sh
+git clone https://github.com/athombv/node-dsmr-parser
+```
+
+4. Install the dependencies
+
+```sh
+npm ci
+```
+
+5. Run the example script
+
+```sh
+npx tsx examples/homey-energy-dongle-usb.js
+```
+
+If the data from your meter is encrypted, you'll need to provide the decryption key and the specific serial port to connect to. For example:
+
+```sh
+npx tsx examples/homey-energy-dongle-usb.js /dev/tty.usbmodem101 1234567890123456
 ```
