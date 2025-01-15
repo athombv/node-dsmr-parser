@@ -25,6 +25,8 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
   private fullFrameRequiredTimeoutMs: number;
   private fullFrameRequiredTimeout?: NodeJS.Timeout;
 
+  public readonly startOfFrameByte = 0x2f; // '/'
+
   constructor(private options: DSMRStreamParserOptions) {
     this.boundOnData = this.onData.bind(this);
     this.boundOnFullFrameRequiredTimeout = this.onFullFrameRequiredTimeout.bind(this);

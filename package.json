@@ -8,6 +8,9 @@
   "files": [
     "./dist"
   ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "test": "node --import tsx --test-reporter spec --test ./tests/*.spec.ts",
     "lint": "eslint . && npm run prettier:check",

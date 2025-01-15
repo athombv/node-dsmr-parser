@@ -19,6 +19,8 @@ export type DSMRStreamParser = {
   clear(): void;
   /** Size in bytes of the data that is cached */
   currentSize(): number;
+  /** The byte that indicates a start of frame was found for this parser */
+  readonly startOfFrameByte: number;
 };
 
 export type DSMRStreamParserOptions = Omit<DSMRParserOptions, 'telegram'> & {
@@ -45,6 +47,8 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
   private fullFrameRequiredTimeout?: NodeJS.Timeout;
   private boundOnData: EncryptedDSMRStreamParser['onData'];
   private boundOnFullFrameRequiredTimeout: EncryptedDSMRStreamParser['onFullFrameRequiredTimeout'];
+
+  public readonly startOfFrameByte = ENCRYPTED_DSMR_TELEGRAM_SOF;
 
   constructor(private options: DSMRStreamParserOptions) {
     this.boundOnData = this.onData.bind(this);
