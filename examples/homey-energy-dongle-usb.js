@@ -6,10 +6,8 @@
  *  > **Note**: In theory a JSON object could contain a newline, but Homey Energy Dongle will always output
  *  > flattened JSON objects, so this is not a concern.
  */
-import stream from 'node:stream';
-
-import { SerialPort, ReadlineParser } from 'serialport';
-import { DSMRError, DSMR } from '../src/index.js';
+import { SerialPort } from 'serialport';
+import { DSMRError, DSMR } from '@athombv/dsmr-parser';
 
 let serialPortPath = process.argv[2];
 const DECRYPTION_KEY = process.argv[3];
@@ -65,53 +63,11 @@ const serialPort = new SerialPort(
   },
 );
 
-// Data available on the serial port is raw data from the USB serial interface. This data will be transmitted in several chunks,
-// The input is piped through several transform streams to parse the JSON objects and extract the raw meter data.
-stream
-  .pipeline(
-    serialPort,
-    // 1. Each json object will be separated by a newline.
-    //    In theory a JSON object could contain a newline, but Homey Energy Dongle will always output
-    //    flattened JSON objects, so this is not a concern.
-    new ReadlineParser({
-      delimiter: '\n',
-      encoding: 'binary',
-    }),
-    // 2. Parse the lines as JSON objects and filter out the DSMR telegrams
-    //    The DSMR telegram JSON object will look like this:
-    //    { "event": "dsmr_telegram", "data": "..." }
-    new stream.Transform({
-      transform(chunk, _encoding, callback) {
-        try {
-          const json = JSON.parse(chunk);
-
-          if (json.event === 'dsmr_telegram') {
-            this.push(Buffer.from(json.data, 'binary'));
-          } else {
-            // More events could be emitted, but they are not relevant for this example.
-            console.log('Unknown event:', json);
-          }
-        } catch (e) {
-          console.error('Error parsing JSON:', e);
-        }
-        callback();
-      },
-    }),
-    // 3. Parse the raw meter data using the DSMR parser
-    DSMR.createStreamTransformer({
-      decryptionKey: DECRYPTION_KEY,
-      detectEncryption: true,
-    }),
-    // 4. Error handler for when an error occurs in the stream. Note that the stream will end when an error occurs here.
-    (err) => {
-      if (err) {
-        console.error('Error in pipeline:', err);
-      }
-    },
-  )
-  // 5. Log the data. Because `DSMR.createStreamTransformer` uses object mode it can emit
-  //    objects in the stream. The error will be set when parsing failed, and the result will be set when parsing succeeded.
-  .on('data', ({ error, result }) => {
+const parser = DSMR.createStreamParser({
+  stream: serialPort,
+  decryptionKey: DECRYPTION_KEY,
+  detectEncryption: true,
+  callback: (error, result) => {
     if (error instanceof DSMRError) {
       console.error('Error parsing DSMR data:', error.message);
       console.error('Raw data:', error.rawTelegram?.toString('hex'));
@@ -124,12 +80,14 @@ stream
       delete result.raw;
       console.log(result);
     }
-  });
+  },
+});
 
 // Make sure to close the port when the process exits
 process.on('SIGINT', () => {
   console.log('Disconnecting...');
 
+  parser.destroy();
   serialPort.close((err) => {
     if (err) {
       console.error('Error closing port:', err);

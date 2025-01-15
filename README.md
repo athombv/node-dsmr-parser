@@ -122,20 +122,22 @@ script of how to do this is located in [`examples/homey-energy-dongle-usb.js`](.
 git clone https://github.com/athombv/node-dsmr-parser
 ```
 
-4. Install the dependencies
+4. Install the dependencies and build the project
 
 ```sh
+cd node-dsmr-parser
 npm ci
+npm run build
 ```
 
 5. Run the example script
 
 ```sh
-npx tsx examples/homey-energy-dongle-usb.js
+node examples/homey-energy-dongle-usb.js
 ```
 
 If the data from your meter is encrypted, you'll need to provide the decryption key and the specific serial port to connect to. For example:
 
 ```sh
-npx tsx examples/homey-energy-dongle-usb.js /dev/tty.usbmodem101 1234567890123456
+node examples/homey-energy-dongle-usb.js /dev/tty.usbmodem101 1234567890123456
 ```

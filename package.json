@@ -1,6 +1,6 @@
 {
   "name": "@athombv/dsmr-parser",
-  "version": "1.0.0-rc.12",
+  "version": "1.0.0-rc.13",
   "description": "DSMR Parser for Smart Meters",
   "type": "module",
   "main": "dist/index.js",
@@ -8,6 +8,9 @@
   "files": [
     "./dist"
   ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "test": "node --import tsx --test-reporter spec --test ./tests/*.spec.ts",
     "lint": "eslint . && npm run prettier:check",
