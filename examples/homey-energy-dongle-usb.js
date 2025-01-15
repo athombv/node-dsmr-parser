@@ -6,13 +6,8 @@
  *  > **Note**: In theory a JSON object could contain a newline, but Homey Energy Dongle will always output
  *  > flattened JSON objects, so this is not a concern.
  */
-// The serial port package handles connecting to the Energy Dongle over a serial connection.
 import { SerialPort } from 'serialport';
-
-// Note: if you are installing this package (@athombv/dsmr-parser) as a dependency in your own project
-// you should use the following import:
-// import { DSMRError, DSMR } from '@athombv/dsmr-parser';
-import { DSMRError, DSMR } from '../src/index.js';
+import { DSMRError, DSMR } from '@athombv/dsmr-parser';
 
 let serialPortPath = process.argv[2];
 const DECRYPTION_KEY = process.argv[3];
