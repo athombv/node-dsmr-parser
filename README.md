@@ -130,7 +130,9 @@ npm ci
 npm run build
 ```
 
-5. Run the example script
+5. Connect Homey Energy Dongle to a Smart Meter
+6. Connect the USB-C port of Homey Energy Dongle to your PC
+7. Run the example script:
 
 ```sh
 node examples/homey-energy-dongle-usb.js
