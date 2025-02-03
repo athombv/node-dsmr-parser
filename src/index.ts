@@ -58,7 +58,7 @@ export type DSMRParserResult = {
       received?: number;
       returned?: number;
     };
-    tariffs?: Record<number, { received?: number; returned?: number }>;
+    tariffs?: Partial<Record<number, { received?: number; returned?: number }>>;
     currentTariff?: number;
     voltage?: {
       l1?: number;
