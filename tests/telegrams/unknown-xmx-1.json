@@ -11,13 +11,15 @@
     "textMessage": ""
   },
   "electricity": {
-    "tariff1": {
-      "received": 11667.44,
-      "returned": 0
-    },
-    "tariff2": {
-      "received": 11781.558,
-      "returned": 0
+    "tariffs": {
+      "1": {
+        "received": 11667.44,
+        "returned": 0
+      },
+      "2": {
+        "received": 11781.558,
+        "returned": 0
+      }
     },
     "currentTariff": 1,
     "powerReceivedTotal": 0.55,
