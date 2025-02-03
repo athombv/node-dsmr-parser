@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 /** This script is used to parse a DSMR telegram from a file. */
 import { promises as fs } from 'node:fs';
+import { inspect } from 'node:util';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { DSMR, DSMRError } from '../src/index.js';
@@ -33,8 +34,13 @@ DSMR.createStreamParser({
   newLineChars: isHexFile ? '\r\n' : '\n', // Use CRLF for hex files as thats what used by meters
   decryptionKey,
   detectEncryption: true,
-  fullFrameRequiredWithinMs: 1,
+  fullFrameRequiredWithinMs: 100,
   callback: (error, result) => {
+    const inspected = inspect(result, {
+      depth: null, // Infinite depth
+      colors: true,
+    });
+
     if (error instanceof DSMRError) {
       console.error(error.message);
       console.log(error.rawTelegram?.toString('hex'));
@@ -42,9 +48,9 @@ DSMR.createStreamParser({
       console.error(error);
     } else if (result?.crc?.valid === false) {
       console.log('CRC validation failed');
-      console.log(result);
+      console.log(inspected);
     } else {
-      console.log(result);
+      console.log(inspected);
     }
 
     process.exit(0);
