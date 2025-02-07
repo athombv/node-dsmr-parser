@@ -1,6 +1,6 @@
 {
   "name": "@athombv/dsmr-parser",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "DSMR Parser for Smart Meters",
   "type": "module",
   "main": "dist/index.js",

@@ -33,13 +33,15 @@
     "textMessage": "303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F"
   },
   "electricity": {
-    "tariff1": {
-      "received": 123456.789,
-      "returned": 123456.789
-    },
-    "tariff2": {
-      "received": 123456.789,
-      "returned": 123456.789
+    "tariffs": {
+      "1": {
+        "received": 123456.789,
+        "returned": 123456.789
+      },
+      "2": {
+        "received": 123456.789,
+        "returned": 123456.789
+      }
     },
     "currentTariff": 2,
     "powerReceivedTotal": 1.193,

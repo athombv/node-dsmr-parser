@@ -1,10 +1,13 @@
 /*
  * This is an example of how to parse Smart Meter data when connected to the USB port of a Homey Energy Dongle.
- * Homey Energy Dongle will output the raw data from the meter, encapsulated in a JSON object. After each JSON object,
- * a newline is printed, which can be used to detect the end of the JSON object.
+ * Homey Energy Dongle will output the raw data from the connected Smart Meter over its USB-C port. This data can be parsed
+ * using the DSMR parser library.
  *
- *  > **Note**: In theory a JSON object could contain a newline, but Homey Energy Dongle will always output
- *  > flattened JSON objects, so this is not a concern.
+ * To get started, plug in the Homey Energy Dongle to a PC and to the Smart Meter. Then run this script as follows:
+ *
+ * node examples/homey-energy-dongle-usb.js
+ *
+ * The script will automatically detect the Homey Energy Dongle and start parsing data from from your Smart Meter!
  */
 import { SerialPort } from 'serialport';
 import { DSMRError, DSMR } from '@athombv/dsmr-parser';
@@ -22,7 +25,7 @@ if (!serialPortPath) {
 
   if (possiblePorts.length === 0) {
     console.log(
-      'Usage: npx tsx examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
+      'Usage: node examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
     );
     console.log('No Homey Energy Dongle found.');
     process.exit(1);
@@ -32,7 +35,7 @@ if (!serialPortPath) {
       console.log(`- ${port.path}`);
     }
     console.log(
-      'Usage: npx tsx examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
+      'Usage: node examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
     );
     process.exit(1);
   } else {

@@ -54,14 +54,11 @@ export type DSMRParserResult = {
     numericMessage?: number;
   };
   electricity: {
-    tariff1?: {
+    total?: {
       received?: number;
       returned?: number;
     };
-    tariff2?: {
-      received?: number;
-      returned?: number;
-    };
+    tariffs?: Partial<Record<number, { received?: number; returned?: number }>>;
     currentTariff?: number;
     voltage?: {
       l1?: number;
