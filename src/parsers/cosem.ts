@@ -33,31 +33,37 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
     },
   },
   {
-    regex: /^1-0:1\.8\.1\((\d+(\.\d+)?)\*kWh\)/,
+    regex: /^1-0:1\.8\.(\d+)\((\d+(\.\d+)?)\*kWh\)/,
     parser: ({ regexResult, result }) => {
-      result.electricity.tariff1 = result.electricity.tariff1 ?? {};
-      result.electricity.tariff1.received = parseFloat(regexResult[1]);
+      const tariff = parseInt(regexResult[1], 10);
+
+      if (tariff === 0) {
+        // This is the total received electricity
+        result.electricity.total = result.electricity.total ?? {};
+        result.electricity.total.received = parseFloat(regexResult[2]);
+      } else {
+        // This is a specific tariff
+        result.electricity.tariffs = result.electricity.tariffs ?? {};
+        result.electricity.tariffs[tariff] = result.electricity.tariffs[tariff] ?? {};
+        result.electricity.tariffs[tariff].received = parseFloat(regexResult[2]);
+      }
     },
   },
   {
-    regex: /^1-0:1\.8\.2\((\d+(\.\d+)?)\*kWh\)/,
+    regex: /^1-0:2\.8\.(\d+)\((\d+(\.\d+)?)\*kWh\)/,
     parser: ({ regexResult, result }) => {
-      result.electricity.tariff2 = result.electricity.tariff2 ?? {};
-      result.electricity.tariff2.received = parseFloat(regexResult[1]);
-    },
-  },
-  {
-    regex: /^1-0:2\.8\.1\((\d+(\.\d+)?)\*kWh\)/,
-    parser: ({ regexResult, result }) => {
-      result.electricity.tariff1 = result.electricity.tariff1 ?? {};
-      result.electricity.tariff1.returned = parseFloat(regexResult[1]);
-    },
-  },
-  {
-    regex: /^1-0:2\.8\.2\((\d+(\.\d+)?)\*kWh\)/,
-    parser: ({ regexResult, result }) => {
-      result.electricity.tariff2 = result.electricity.tariff2 ?? {};
-      result.electricity.tariff2.returned = parseFloat(regexResult[1]);
+      const tariff = parseInt(regexResult[1], 10);
+
+      if (tariff === 0) {
+        // This is the total received electricity
+        result.electricity.total = result.electricity.total ?? {};
+        result.electricity.total.returned = parseFloat(regexResult[2]);
+      } else {
+        // This is a specific tariff
+        result.electricity.tariffs = result.electricity.tariffs ?? {};
+        result.electricity.tariffs[tariff] = result.electricity.tariffs[tariff] ?? {};
+        result.electricity.tariffs[tariff].returned = parseFloat(regexResult[2]);
+      }
     },
   },
   {

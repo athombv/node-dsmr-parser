@@ -10,8 +10,6 @@
     "timestamp": "200706104157S",
     "unknownLines": [
       "0-0:42.0.0(53414731303330373930303032353734)",
-      "1-0:1.8.0(000025.653*kWh)",
-      "1-0:2.8.0(000000.040*kWh)",
       "1-0:3.8.0(000000.835*kvarh)",
       "1-0:4.8.0(000063.781*kvarh)",
       "1-0:3.7.0(00.000*kvar)",
@@ -58,6 +56,10 @@
     "textMessage": ""
   },
   "electricity": {
+    "total": {
+      "received": 25.653,
+      "returned": 0.04
+    },
     "powerReceivedTotal": 0.005,
     "powerReturnedTotal": 0,
     "voltage": {
