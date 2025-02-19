@@ -73,6 +73,8 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
     mBus: {},
   };
 
+  let objectsParsed = 0;
+
   for (const [lineNumber, line] of lines.entries()) {
     if (line.startsWith('/')) {
       // Beginning of telegram
@@ -102,6 +104,8 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
       if (!isLineParsed) {
         result.metadata.unknownLines = result.metadata.unknownLines ?? [];
         result.metadata.unknownLines.push(line);
+      } else {
+        objectsParsed++;
       }
     }
   }
@@ -114,8 +118,8 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
     });
   }
 
-  if (result.header.identifier === '' || result.header.xxx === '' || result.header.z === '') {
-    throw new DSMRParserError('Invalid telegram. Missing header');
+  if (objectsParsed === 0) {
+    throw new DSMRParserError('Invalid telegram. No COSEM objects found.');
   }
 
   return result;
