@@ -13,7 +13,7 @@ const testCases = [...new Set(files.map((file) => file.replace('.txt', '').repla
 for (const file of testCases) {
   let input = await fs.readFile(`./tests/telegrams/${file}.txt`, 'utf-8');
   input = input.replace(/\r?\n/g, '\r\n');
-  console.log(`Parsing ${file}.txt`);  
+  console.log(`Parsing ${file}.txt`);
   const parsed = DSMR.parse({ telegram: input });
   const json = JSON.stringify(parsed, null, 2);
   await fs.writeFile(`./tests/telegrams/${file}.json`, json);
