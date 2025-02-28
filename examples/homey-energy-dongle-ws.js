@@ -1,4 +1,4 @@
-/**
+/*
  * This is an example of how to parse Smart Meter data when connected to the WebSocket server of a
  * Homey Energy Dongle. Homey Energy Dongle will output the raw data from the connected Smart Meter
  * over its WebSocket server. This data can be parsed using the DSMR parser library.

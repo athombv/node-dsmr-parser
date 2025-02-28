@@ -168,7 +168,7 @@ npm run build
 5. Connect Homey Energy Dongle to a Smart Meter
 6. Set up Homey Energy Dongle in the Homey app
 7. Enable the Local API in Homey Energy Dongle's settings in Homey
-    - You can also find Homey Energy Dongle's IP address here
+   - You can also find Homey Energy Dongle's IP address here
 8. Run the example script:
 
 ```sh
