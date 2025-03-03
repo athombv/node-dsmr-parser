@@ -90,7 +90,7 @@ while (true) {
     receivedPong = true;
   });
 
-  // Steam all messages from the WebSocket connection.
+  // Stream all messages from the WebSocket connection.
   // The DSMR library will parse incoming data from the websocket,
   const stream = createWebSocketStream(ws);
 
