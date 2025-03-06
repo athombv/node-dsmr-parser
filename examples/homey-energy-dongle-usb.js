@@ -81,7 +81,7 @@ const parser = DSMR.createStreamParser({
       console.log(result.raw);
       console.log('Parsed telegram:');
       delete result.raw;
-      console.log(result);
+      console.dir(result, { depth: Infinity });
     }
   },
 });

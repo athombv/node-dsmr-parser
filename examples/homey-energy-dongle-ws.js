@@ -116,11 +116,10 @@ while (true) {
       } else if (error) {
         console.error('Error:', error);
       } else {
-        console.log('Raw telegram:');
-        console.log(result.raw);
-        console.log('Parsed telegram:');
+        // Not very useful to log the raw telegram here as it is already logged by the data listener on the stream.
         delete result.raw;
-        console.log(result);
+        console.log('Parsed telegram:');
+        console.dir(result, { depth: Infinity });
       }
     },
   });
