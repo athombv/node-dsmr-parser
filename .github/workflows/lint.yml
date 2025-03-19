@@ -13,5 +13,20 @@ on:
 jobs:
   lint:
     name: Lint
-    uses: athombv/athom-github-workflow/.github/workflows/lint.yml@master
-    secrets: inherit
+    runs-on: buildjet-2vcpu-ubuntu-2204-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Setup Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Lint
+        run: |
+          npm ci --ignore-scripts --audit=false
+          npm run lint
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
