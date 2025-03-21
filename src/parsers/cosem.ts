@@ -33,36 +33,36 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
     },
   },
   {
-    regex: /^1-0:1\.8\.(\d+)\((\d+(\.\d+)?)\*kWh\)/,
+    regex: /^1-(\d):1\.8\.(\d+)\((\d+(\.\d+)?)\*kWh\)/,
     parser: ({ regexResult, result }) => {
-      const tariff = parseInt(regexResult[1], 10);
+      const tariff = parseInt(regexResult[2], 10);
 
       if (tariff === 0) {
         // This is the total received electricity
         result.electricity.total = result.electricity.total ?? {};
-        result.electricity.total.received = parseFloat(regexResult[2]);
+        result.electricity.total.received = parseFloat(regexResult[3]);
       } else {
         // This is a specific tariff
         result.electricity.tariffs = result.electricity.tariffs ?? {};
         result.electricity.tariffs[tariff] = result.electricity.tariffs[tariff] ?? {};
-        result.electricity.tariffs[tariff].received = parseFloat(regexResult[2]);
+        result.electricity.tariffs[tariff].received = parseFloat(regexResult[3]);
       }
     },
   },
   {
-    regex: /^1-0:2\.8\.(\d+)\((\d+(\.\d+)?)\*kWh\)/,
+    regex: /^1-(\d):2\.8\.(\d+)\((\d+(\.\d+)?)\*kWh\)/,
     parser: ({ regexResult, result }) => {
-      const tariff = parseInt(regexResult[1], 10);
+      const tariff = parseInt(regexResult[2], 10);
 
       if (tariff === 0) {
         // This is the total received electricity
         result.electricity.total = result.electricity.total ?? {};
-        result.electricity.total.returned = parseFloat(regexResult[2]);
+        result.electricity.total.returned = parseFloat(regexResult[3]);
       } else {
         // This is a specific tariff
         result.electricity.tariffs = result.electricity.tariffs ?? {};
         result.electricity.tariffs[tariff] = result.electricity.tariffs[tariff] ?? {};
-        result.electricity.tariffs[tariff].returned = parseFloat(regexResult[2]);
+        result.electricity.tariffs[tariff].returned = parseFloat(regexResult[3]);
       }
     },
   },
@@ -73,15 +73,15 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
     },
   },
   {
-    regex: /^1-0:1\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-(\d):1\.7\.0\((\d+(\.\d+)?)\*kW\)/,
     parser: ({ regexResult, result }) => {
-      result.electricity.powerReceivedTotal = parseFloat(regexResult[1]);
+      result.electricity.powerReceivedTotal = parseFloat(regexResult[2]);
     },
   },
   {
-    regex: /^1-0:2\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-(\d):2\.7\.0\((\d+(\.\d+)?)\*kW\)/,
     parser: ({ regexResult, result }) => {
-      result.electricity.powerReturnedTotal = parseFloat(regexResult[1]);
+      result.electricity.powerReturnedTotal = parseFloat(regexResult[2]);
     },
   },
   {
