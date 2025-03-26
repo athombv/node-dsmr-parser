@@ -1,5 +1,8 @@
 # DSMR Parser
 
+[![Test](https://github.com/athombv/node-dsmr-parser/actions/workflows/test.yml/badge.svg)](https://github.com/athombv/node-dsmr-parser/actions/workflows/test.yml)
+[![Build](https://github.com/athombv/node-dsmr-parser/actions/workflows/build.yml/badge.svg)](https://github.com/athombv/node-dsmr-parser/actions/workflows/build.yml)
+
 This module can parse Dutch Smart Meter Requirements (DSMR) messages, and return their contents as JavaScript Objects.
 
 ## Installation
