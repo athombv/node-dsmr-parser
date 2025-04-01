@@ -1,7 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { DSMR } from '../src/index.js';
-import { encryptFrame, getAllTestTelegramTestCases, readTelegramFromFiles } from './test-utils.js';
+import {
+  encryptFrame,
+  getAllTestTelegramTestCases,
+  readTelegramFromFiles,
+  TEST_AAD,
+  TEST_DECRYPTION_KEY,
+} from './test-utils.js';
 
 describe('DSMR Parser', async () => {
   const testCases = await getAllTestTelegramTestCases();
@@ -16,21 +22,54 @@ describe('DSMR Parser', async () => {
         telegram: input,
       });
 
+      // @ts-expect-error raw is not typed
       assert.equal(parsed.raw, expectedOutput.raw);
       assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
     });
 
-    it(`Parses ${testCase} with decryption`, async () => {
+    it(`Parses ${testCase} with decryption (valid AAD)`, async () => {
       const { input, output: expectedOutput } = await readTelegramFromFiles(
         `./tests/telegrams/${testCase}`,
       );
 
-      const key = '0123456789ABCDEF';
-      const encrypted = encryptFrame({ frame: input, key });
+      const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
 
       const parsed = DSMR.parse({
         telegram: encrypted,
-        decryptionKey: key,
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: TEST_AAD,
+      });
+
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
+    });
+
+    it(`Parses ${testCase} with decryption (missing AAD)`, async () => {
+      const { input, output: expectedOutput } = await readTelegramFromFiles(
+        `./tests/telegrams/${testCase}`,
+      );
+
+      const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
+
+      const parsed = DSMR.parse({
+        telegram: encrypted,
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: undefined,
+      });
+
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
+    });
+
+    it(`Parses ${testCase} with decryption (invalid AAD)`, async () => {
+      const { input, output: expectedOutput } = await readTelegramFromFiles(
+        `./tests/telegrams/${testCase}`,
+      );
+
+      const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
+
+      const parsed = DSMR.parse({
+        telegram: encrypted,
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: Buffer.from('invalid-aad12345', 'ascii'),
       });
 
       assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
