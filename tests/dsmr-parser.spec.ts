@@ -27,7 +27,7 @@ describe('DSMR Parser', async () => {
       assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
     });
 
-    it(`Parses ${testCase} with decryption`, async () => {
+    it(`Parses ${testCase} with decryption (valid AAD)`, async () => {
       const { input, output: expectedOutput } = await readTelegramFromFiles(
         `./tests/telegrams/${testCase}`,
       );
@@ -38,6 +38,38 @@ describe('DSMR Parser', async () => {
         telegram: encrypted,
         decryptionKey: TEST_DECRYPTION_KEY,
         additionalAuthenticatedData: TEST_AAD,
+      });
+
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
+    });
+
+    it(`Parses ${testCase} with decryption (missing AAD)`, async () => {
+      const { input, output: expectedOutput } = await readTelegramFromFiles(
+        `./tests/telegrams/${testCase}`,
+      );
+
+      const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
+
+      const parsed = DSMR.parse({
+        telegram: encrypted,
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: undefined,
+      });
+
+      assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
+    });
+
+    it(`Parses ${testCase} with decryption (invalid AAD)`, async () => {
+      const { input, output: expectedOutput } = await readTelegramFromFiles(
+        `./tests/telegrams/${testCase}`,
+      );
+
+      const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
+
+      const parsed = DSMR.parse({
+        telegram: encrypted,
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: Buffer.from('invalid-aad12345', 'ascii'),
       });
 
       assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);

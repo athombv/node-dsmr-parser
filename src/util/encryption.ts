@@ -132,10 +132,14 @@ export const decryptFrameContents = ({
   }
 
   const iv = Buffer.concat([header.systemTitle, header.frameCounter]);
+  let cipher: crypto.DecipherGCM;
+  let content = '';
 
-  // Wrap in try-catch to throw a DSMRDecryptionError instead of a generic error.
+  // 1: decrypt the frame, this will only throw if the key, iv or AAD are not
+  // correct due to their format. `cipher.update` will never throw, but if the key/iv/aad
+  // are not valid it may return gibberish.
   try {
-    const cipher = crypto.createDecipheriv('aes-128-gcm', key, iv, {
+    cipher = crypto.createDecipheriv('aes-128-gcm', key, iv, {
       authTagLength: ENCRYPTED_DSMR_GCM_TAG_LEN,
     });
     cipher.setAutoPadding(false);
@@ -145,10 +149,29 @@ export const decryptFrameContents = ({
       cipher.setAAD(additionalAuthenticatedData);
     }
 
-    return cipher.update(data, undefined, encoding) + cipher.final(encoding);
+    content += cipher.update(data, undefined, encoding);
   } catch (error) {
-    throw new DSMRDecryptionError(error);
+    return {
+      content,
+      error: new DSMRDecryptionError(error),
+    };
   }
+
+  // 2: call final on the frame. This will check the AAD/iv/key.
+  // When either of these are invalid, it will throw an "Unsupported state or unable to authenticate data" error.
+  // If the AAD is invalid, but the key/iv are valid the content can still be a valid DSMR frame!
+  try {
+    content += cipher.final(encoding);
+  } catch (error) {
+    return {
+      content,
+      error: new DSMRDecryptionError(error),
+    };
+  }
+
+  return {
+    content,
+  };
 };
 
 /** Decrypts a full encrypted DSMR frame */
@@ -165,12 +188,12 @@ export const decryptFrame = ({
 }) => {
   const header = decodeHeader(data);
   const footer = decodeFooter(data, header);
-  const content = data.subarray(
+  const encryptedContent = data.subarray(
     ENCRYPTED_DSMR_HEADER_LEN,
     ENCRYPTED_DSMR_HEADER_LEN + header.contentLength,
   );
-  const decryptedContent = decryptFrameContents({
-    data: content,
+  const { content, error } = decryptFrameContents({
+    data: encryptedContent,
     header,
     footer,
     key,
@@ -181,6 +204,7 @@ export const decryptFrame = ({
   return {
     header,
     footer,
-    content: decryptedContent,
+    content,
+    error,
   };
 };

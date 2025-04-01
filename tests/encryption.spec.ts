@@ -4,9 +4,12 @@ import { readHexFile, readTelegramFromFiles, TEST_AAD, TEST_DECRYPTION_KEY } fro
 import { decryptFrame } from '../src/util/encryption.js';
 import { DSMRDecryptionError } from '../src/index.js';
 import { DEFAULT_FRAME_ENCODING } from '../src/util/frame-validation.js';
+import { DSMRParser } from '../src/parsers/dsmr.js';
 
 describe('Encryption', async () => {
-  const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-luxembourgh-spec-example');
+  const { input, output } = await readTelegramFromFiles(
+    './tests/telegrams/dsmr-luxembourgh-spec-example',
+  );
   const encryptedWithAad = await readHexFile(
     './tests/telegrams/encrypted/dsmr-luxembourgh-spec-example-with-aad.txt',
   );
@@ -25,6 +28,7 @@ describe('Encryption', async () => {
     });
 
     assert.deepStrictEqual(decrypted.content.toString(), input);
+    assert.equal(decrypted.error, undefined);
   });
 
   it('Can decrypt a message (without AAD)', async () => {
@@ -35,38 +39,55 @@ describe('Encryption', async () => {
     });
 
     assert.deepStrictEqual(decrypted.content.toString(), input);
+    assert.equal(decrypted.error, undefined);
   });
 
-  it('Throws error on invalid key', () => {
-    assert.throws(() => {
-      decryptFrame({
-        data: encryptedWithAad,
-        key: Buffer.from('invalid-key12345', 'ascii'),
-        additionalAuthenticatedData: TEST_AAD,
-        encoding: DEFAULT_FRAME_ENCODING,
-      });
-    }, DSMRDecryptionError);
+  it('Can decrypt a message (with invalid AAD)', async () => {
+    const decrypted = decryptFrame({
+      data: encryptedWithAad,
+      key: TEST_DECRYPTION_KEY,
+      additionalAuthenticatedData: Buffer.from('invalid-aad12345', 'ascii'),
+      encoding: DEFAULT_FRAME_ENCODING,
+    });
+
+    assert.deepStrictEqual(decrypted.content.toString(), input);
+    assert.equal(decrypted.error?.constructor, DSMRDecryptionError);
   });
 
-  it('Throws error on invalid AAD', () => {
-    assert.throws(() => {
-      decryptFrame({
-        data: encryptedWithAad,
-        key: TEST_DECRYPTION_KEY,
-        additionalAuthenticatedData: Buffer.from('invalid-aad12345', 'ascii'),
-        encoding: DEFAULT_FRAME_ENCODING,
-      });
-    }, DSMRDecryptionError);
+  it('Returns error on invalid key', () => {
+    const { error } = decryptFrame({
+      data: encryptedWithAad,
+      key: Buffer.from('invalid-key12345', 'ascii'),
+      additionalAuthenticatedData: TEST_AAD,
+      encoding: DEFAULT_FRAME_ENCODING,
+    });
+
+    assert.equal(error?.constructor, DSMRDecryptionError);
   });
 
-  it('Throws error on invalid key and AAD', () => {
-    assert.throws(() => {
-      decryptFrame({
-        data: encryptedWithAad,
-        key: Buffer.from('invalid-key12345', 'ascii'),
-        additionalAuthenticatedData: Buffer.from('invalid-aad12345', 'ascii'),
-        encoding: DEFAULT_FRAME_ENCODING,
-      });
-    }, DSMRDecryptionError);
+  it('Returns error on invalid AAD', () => {
+    const { content, error } = decryptFrame({
+      data: encryptedWithAad,
+      key: TEST_DECRYPTION_KEY,
+      additionalAuthenticatedData: Buffer.from('invalid-aad12345', 'ascii'),
+      encoding: DEFAULT_FRAME_ENCODING,
+    });
+
+    assert.equal(error?.constructor, DSMRDecryptionError);
+
+    const parsed = DSMRParser({ telegram: content });
+
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), output);
+  });
+
+  it('Returns error on invalid key and AAD', () => {
+    const { error } = decryptFrame({
+      data: encryptedWithAad,
+      key: Buffer.from('invalid-key12345', 'ascii'),
+      additionalAuthenticatedData: Buffer.from('invalid-aad12345', 'ascii'),
+      encoding: DEFAULT_FRAME_ENCODING,
+    });
+
+    assert.equal(error?.constructor, DSMRDecryptionError);
   });
 });

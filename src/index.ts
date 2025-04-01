@@ -102,6 +102,8 @@ export type DSMRParserResult = {
     value: number;
     valid: boolean;
   };
+  /** Only set when encryption is used */
+  additionalAuthenticatedDataValid?: boolean;
 };
 
 export * from './util/errors.js';
