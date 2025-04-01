@@ -18,7 +18,9 @@
     "prettier": "prettier . --write",
     "prettier:check": "prettier . --check",
     "tool:parse-telegram": "tsx ./tools/parse-telegram.ts",
-    "tool:update-test-telegrams": "tsx ./tools/update-test-telegrams.ts"
+    "tool:update-test-telegrams": "tsx ./tools/update-test-telegrams.ts",
+    "tool:decrypt-telegram": "tsx ./tools/decrypt-telegram.ts",
+    "tool:encrypt-telegram": "tsx ./tools/encrypt-telegram.ts"
   },
   "repository": {
     "type": "git",

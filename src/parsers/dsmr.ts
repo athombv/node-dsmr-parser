@@ -49,14 +49,15 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
 
   if (typeof options.telegram === 'string') {
     telegram = options.telegram;
-  } else if (typeof options.decryptionKey !== 'string') {
+  } else if (!Buffer.isBuffer(options.decryptionKey)) {
     telegram = options.telegram.toString(options.encoding ?? DEFAULT_FRAME_ENCODING);
   } else {
     telegram = decryptFrame({
       data: options.telegram,
       key: options.decryptionKey,
+      additionalAuthenticatedData: options.additionalAuthenticatedData,
       encoding: options.encoding ?? DEFAULT_FRAME_ENCODING,
-    });
+    }).content;
   }
 
   const lines = telegram.split(options.newLineChars);

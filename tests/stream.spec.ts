@@ -1,7 +1,14 @@
 import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { describe, it, mock } from 'node:test';
-import { chunkBuffer, chunkString, encryptFrame, readTelegramFromFiles } from './test-utils.js';
+import {
+  chunkBuffer,
+  chunkString,
+  encryptFrame,
+  readTelegramFromFiles,
+  TEST_AAD,
+  TEST_DECRYPTION_KEY,
+} from './test-utils.js';
 import {
   DSMRStartOfFrameNotFoundError,
   DSMR,
@@ -212,8 +219,7 @@ describe('DSMRStreamParser', () => {
       const { input, output } = await readTelegramFromFiles(
         './tests/telegrams/dsmr-5.0-spec-example',
       );
-      const decryptionKey = '0123456789ABCDEF';
-      const encrypted = encryptFrame({ frame: input, key: decryptionKey });
+      const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
       const chunks = chunkBuffer(encrypted, 10);
 
       const stream = new PassThrough();
@@ -222,7 +228,8 @@ describe('DSMRStreamParser', () => {
       const instance = DSMR.createStreamParser({
         stream,
         callback,
-        decryptionKey,
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: TEST_AAD,
       });
 
       for (const chunk of chunks) {
@@ -244,9 +251,8 @@ describe('DSMRStreamParser', () => {
         './tests/telegrams/dsmr-4.0-spec-example',
       );
 
-      const decryptionKey = '0123456789ABCDEF';
-      const encrypted1 = encryptFrame({ frame: input1, key: decryptionKey });
-      const encrypted2 = encryptFrame({ frame: input2, key: decryptionKey });
+      const encrypted1 = encryptFrame({ frame: input1, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
+      const encrypted2 = encryptFrame({ frame: input2, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
 
       const stream = new PassThrough();
       const callback = mock.fn();
@@ -254,7 +260,8 @@ describe('DSMRStreamParser', () => {
       const instance = DSMR.createStreamParser({
         stream,
         callback,
-        decryptionKey,
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: TEST_AAD,
       });
 
       stream.write(Buffer.concat([encrypted1, encrypted2]));
@@ -276,7 +283,8 @@ describe('DSMRStreamParser', () => {
       const instance = DSMR.createStreamParser({
         stream,
         callback,
-        decryptionKey: '0123456789ABCDEF',
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: TEST_AAD,
       });
 
       stream.write('invalid telegram');
@@ -302,8 +310,7 @@ describe('DSMRStreamParser', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       output.raw = output.raw.replace(/\r\n/g, '\n');
 
-      const decryptionKey = '0123456789ABCDEF';
-      const encrypted = encryptFrame({ frame: input, key: decryptionKey });
+      const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
 
       const stream = new PassThrough();
       const callback = mock.fn();
@@ -312,7 +319,8 @@ describe('DSMRStreamParser', () => {
         stream,
         callback,
         newLineChars: '\n',
-        decryptionKey,
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: TEST_AAD,
       });
       stream.write(encrypted);
 
@@ -326,8 +334,7 @@ describe('DSMRStreamParser', () => {
 
     it('Detects an encrypted frame in non-encrypted mode', async () => {
       const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
-      const decryptionKey = '0123456789ABCDEF';
-      const encrypted = encryptFrame({ frame: input, key: decryptionKey });
+      const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
       const chunks = chunkBuffer(encrypted, 1);
 
       const stream = new PassThrough();
@@ -337,6 +344,7 @@ describe('DSMRStreamParser', () => {
         stream,
         callback,
         detectEncryption: true,
+        additionalAuthenticatedData: TEST_AAD,
       });
 
       for (const chunk of chunks) {
@@ -368,8 +376,11 @@ describe('DSMRStreamParser', () => {
     // full header, it will can still detect the encrypted frame when
     it('Detects non-aligned encrypted frame', async () => {
       const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
-      const decryptionKey = '0123456789ABCDEF';
-      const originalEncrypted = encryptFrame({ frame: input, key: decryptionKey });
+      const originalEncrypted = encryptFrame({
+        frame: input,
+        key: TEST_DECRYPTION_KEY,
+        aad: TEST_AAD,
+      });
 
       const prefix = Buffer.from(
         [...new Array<number>(ENCRYPTED_DSMR_HEADER_LEN - 1)].map(() => 0x00),
@@ -385,6 +396,7 @@ describe('DSMRStreamParser', () => {
         stream,
         callback,
         detectEncryption: true,
+        additionalAuthenticatedData: TEST_AAD,
       });
 
       for (const chunk of chunks) {
@@ -424,10 +436,11 @@ describe('DSMRStreamParser', () => {
         stream,
         callback,
         fullFrameRequiredWithinMs,
-        decryptionKey: '0123456789ABCDEF',
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: TEST_AAD,
       });
 
-      const frame = encryptFrame({ frame: '', key: '0123456789ABCDEF' });
+      const frame = encryptFrame({ frame: '', key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
       const header = frame.subarray(0, ENCRYPTED_DSMR_HEADER_LEN);
 
       stream.write(header); // Write the header, but not the rest of the frame.
@@ -454,7 +467,8 @@ describe('DSMRStreamParser', () => {
         stream,
         callback,
         fullFrameRequiredWithinMs,
-        decryptionKey: '0123456789ABCDEF',
+        decryptionKey: TEST_DECRYPTION_KEY,
+        additionalAuthenticatedData: TEST_AAD,
         detectEncryption: false,
       });
 
