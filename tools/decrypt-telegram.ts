@@ -33,7 +33,6 @@ aad ??= TEST_AAD.toString('hex');
 
 console.log(`Using decryption key: ${decryptionKey}`);
 console.log(`Using AAD: ${aad}`);
-console.log(process.argv);
 
 const resolvedPath = path.resolve(process.cwd(), inputPath);
 let file = await fs.readFile(resolvedPath);
