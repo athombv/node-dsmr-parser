@@ -33,36 +33,53 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
     },
   },
   {
-    regex: /^1-(\d):1\.8\.(\d+)\((\d+(\.\d+)?)\*kWh\)/,
+    regex: /^1-(\d):1\.8\.(\d+)\((\d+(\.\d+)?)\*(\w+)\)/,
     parser: ({ regexResult, result }) => {
       const tariff = parseInt(regexResult[2], 10);
+      let value = parseFloat(regexResult[3]);
+
+      const unit = regexResult[5];
+
+      if (unit === 'Wh') {
+        // Convert to kWh
+        value = value / 1000;
+      }
 
       if (tariff === 0) {
         // This is the total received electricity
         result.electricity.total = result.electricity.total ?? {};
-        result.electricity.total.received = parseFloat(regexResult[3]);
+        result.electricity.total.received = value;
       } else {
         // This is a specific tariff
         result.electricity.tariffs = result.electricity.tariffs ?? {};
         result.electricity.tariffs[tariff] = result.electricity.tariffs[tariff] ?? {};
-        result.electricity.tariffs[tariff].received = parseFloat(regexResult[3]);
+        result.electricity.tariffs[tariff].received = value;
       }
     },
   },
   {
-    regex: /^1-(\d):2\.8\.(\d+)\((\d+(\.\d+)?)\*kWh\)/,
+    regex: /^1-(\d):2\.8\.(\d+)\((\d+(\.\d+)?)\*(\w+)\)/,
     parser: ({ regexResult, result }) => {
       const tariff = parseInt(regexResult[2], 10);
+
+      let value = parseFloat(regexResult[3]);
+
+      const unit = regexResult[5];
+
+      if (unit === 'Wh') {
+        // Convert to kWh
+        value = value / 1000;
+      }
 
       if (tariff === 0) {
         // This is the total received electricity
         result.electricity.total = result.electricity.total ?? {};
-        result.electricity.total.returned = parseFloat(regexResult[3]);
+        result.electricity.total.returned = value;
       } else {
         // This is a specific tariff
         result.electricity.tariffs = result.electricity.tariffs ?? {};
         result.electricity.tariffs[tariff] = result.electricity.tariffs[tariff] ?? {};
-        result.electricity.tariffs[tariff].returned = parseFloat(regexResult[3]);
+        result.electricity.tariffs[tariff].returned = value;
       }
     },
   },
@@ -73,15 +90,31 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
     },
   },
   {
-    regex: /^1-(\d):1\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-(\d):1\.7\.0\((\d+(\.\d+)?)\*(\w+)\)/,
     parser: ({ regexResult, result }) => {
-      result.electricity.powerReceivedTotal = parseFloat(regexResult[2]);
+      let value = parseFloat(regexResult[2]);
+      const unit = regexResult[4];
+
+      if (unit === 'W') {
+        // Convert to kW
+        value = value / 1000;
+      }
+
+      result.electricity.powerReceivedTotal = value;
     },
   },
   {
-    regex: /^1-(\d):2\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-(\d):2\.7\.0\((\d+(\.\d+)?)\*(\w+)\)/,
     parser: ({ regexResult, result }) => {
-      result.electricity.powerReturnedTotal = parseFloat(regexResult[2]);
+      let value = parseFloat(regexResult[2]);
+      const unit = regexResult[4];
+
+      if (unit === 'W') {
+        // Convert to kW
+        value = value / 1000;
+      }
+
+      result.electricity.powerReturnedTotal = value;
     },
   },
   {
@@ -203,24 +236,48 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
     },
   },
   {
-    regex: /^1-0:21\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-0:21\.7\.0\((\d+(\.\d+)?)\*(\w+)\)/,
     parser: ({ regexResult, result }) => {
+      let value = parseFloat(regexResult[1]);
+      const unit = regexResult[3];
+
+      if (unit === 'W') {
+        // Convert to kW
+        value = value / 1000;
+      }
+
       result.electricity.powerReceived = result.electricity.powerReceived ?? {};
-      result.electricity.powerReceived.l1 = parseFloat(regexResult[1]);
+      result.electricity.powerReceived.l1 = value;
     },
   },
   {
-    regex: /^1-0:41\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-0:41\.7\.0\((\d+(\.\d+)?)\*(\w+)\)/,
     parser: ({ regexResult, result }) => {
+      let value = parseFloat(regexResult[1]);
+      const unit = regexResult[3];
+
+      if (unit === 'W') {
+        // Convert to kW
+        value = value / 1000;
+      }
+
       result.electricity.powerReceived = result.electricity.powerReceived ?? {};
-      result.electricity.powerReceived.l2 = parseFloat(regexResult[1]);
+      result.electricity.powerReceived.l2 = value;
     },
   },
   {
-    regex: /^1-0:61\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-0:61\.7\.0\((\d+(\.\d+)?)\*(\w+)\)/,
     parser: ({ regexResult, result }) => {
+      let value = parseFloat(regexResult[1]);
+      const unit = regexResult[3];
+
+      if (unit === 'W') {
+        // Convert to kW
+        value = value / 1000;
+      }
+
       result.electricity.powerReceived = result.electricity.powerReceived ?? {};
-      result.electricity.powerReceived.l3 = parseFloat(regexResult[1]);
+      result.electricity.powerReceived.l3 = value;
     },
   },
   {
