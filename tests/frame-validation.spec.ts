@@ -1,7 +1,13 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { isAsciiFrame, isEncryptedFrame, DSMRFrameValid } from '../src/util/frame-validation.js';
-import { encryptFrame, getAllTestTelegramTestCases, readTelegramFromFiles } from './test-utils.js';
+import {
+  encryptFrame,
+  getAllTestTelegramTestCases,
+  readTelegramFromFiles,
+  TEST_AAD,
+  TEST_DECRYPTION_KEY,
+} from './test-utils.js';
 
 describe('Frame validation', () => {
   it('Detects ascii buffer', () => {
@@ -28,7 +34,8 @@ describe('Frame validation', () => {
   it('Detects valid encrypted frame', () => {
     const buffer = encryptFrame({
       frame: 'Hello, world!',
-      key: '1234567890123456',
+      key: TEST_DECRYPTION_KEY,
+      aad: TEST_AAD,
     });
     const isEncrypted = isEncryptedFrame(buffer);
 
@@ -38,7 +45,8 @@ describe('Frame validation', () => {
   it('Detects encrypted frame', () => {
     const buffer = encryptFrame({
       frame: 'Hello, world!',
-      key: '1234567890123456',
+      key: TEST_DECRYPTION_KEY,
+      aad: TEST_AAD,
     });
     const { valid, encrypted } = DSMRFrameValid(buffer);
 

@@ -99,35 +99,52 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
     // Wait for more data to decode the header
     if (!this.header) return;
 
-    const totalLength = this.header.contentLength + ENCRYPTED_DSMR_GCM_TAG_LEN;
+    const totalLength =
+      ENCRYPTED_DSMR_HEADER_LEN + this.header.contentLength + ENCRYPTED_DSMR_GCM_TAG_LEN;
 
     // Wait until full telegram is received
     if (this.telegram.length < totalLength) return;
 
     clearTimeout(this.fullFrameRequiredTimeout);
 
+    let decryptError: Error | undefined;
+
     try {
-      const content = this.telegram.subarray(ENCRYPTED_DSMR_HEADER_LEN, this.header.contentLength);
+      const encryptedContent = this.telegram.subarray(
+        ENCRYPTED_DSMR_HEADER_LEN,
+        ENCRYPTED_DSMR_HEADER_LEN + this.header.contentLength,
+      );
       const footer = decodeFooter(this.telegram, this.header);
-      const decrypted = decryptFrameContents({
-        data: content,
+
+      const { content, error } = decryptFrameContents({
+        data: encryptedContent,
         header: this.header,
         footer,
-        key: this.options.decryptionKey ?? '',
+        key: this.options.decryptionKey ?? Buffer.alloc(0),
+        additionalAuthenticatedData: this.options.additionalAuthenticatedData,
         encoding: this.options.encoding ?? DEFAULT_FRAME_ENCODING,
       });
+
+      decryptError = error;
+
       const result = DSMRParser({
-        telegram: decrypted,
+        telegram: content,
         newLineChars: this.options.newLineChars,
       });
 
+      result.additionalAuthenticatedDataValid = decryptError === undefined;
+
       this.options.callback(null, result);
     } catch (error) {
-      if (error instanceof DSMRError) {
-        error.withRawTelegram(this.telegram);
+      // If we had a decryption error that is the cause of the error.
+      // So that should be returned to the listener.
+      const realError = decryptError ?? error;
+
+      if (realError instanceof DSMRError) {
+        realError.withRawTelegram(this.telegram);
       }
 
-      this.options.callback(error, undefined);
+      this.options.callback(realError, undefined);
     }
 
     const remainingData = this.telegram.subarray(totalLength, this.telegram.length);

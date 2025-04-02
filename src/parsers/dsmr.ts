@@ -46,17 +46,22 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   options.newLineChars = options.newLineChars ?? '\r\n';
 
   let telegram: string;
+  let decryptError: Error | undefined;
 
   if (typeof options.telegram === 'string') {
     telegram = options.telegram;
-  } else if (typeof options.decryptionKey !== 'string') {
+  } else if (!Buffer.isBuffer(options.decryptionKey)) {
     telegram = options.telegram.toString(options.encoding ?? DEFAULT_FRAME_ENCODING);
   } else {
-    telegram = decryptFrame({
+    const { content, error } = decryptFrame({
       data: options.telegram,
       key: options.decryptionKey,
+      additionalAuthenticatedData: options.additionalAuthenticatedData,
       encoding: options.encoding ?? DEFAULT_FRAME_ENCODING,
     });
+
+    telegram = content;
+    decryptError = error;
   }
 
   const lines = telegram.split(options.newLineChars);
@@ -119,6 +124,12 @@ export const DSMRParser = (options: DSMRParserOptions): DSMRParserResult => {
   }
 
   if (objectsParsed === 0) {
+    // If we're unable to parse the data and we have a decryption error,
+    // the error is probably in the decryption.
+    if (decryptError) {
+      throw decryptError;
+    }
+
     throw new DSMRParserError('Invalid telegram. No COSEM objects found.');
   }
 

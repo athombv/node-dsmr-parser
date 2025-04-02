@@ -1,6 +1,7 @@
 import { DSMRParser } from './parsers/dsmr.js';
 import { getMbusDevice, MBUS_DEVICE_IDS } from './parsers/mbus.js';
 import { createDSMRStreamParser, createDSMRStreamTransformer } from './parsers/stream.js';
+import { ENCRYPTION_DEFAULT_AAD } from './util/encryption.js';
 import { DSMRFrameValid } from './util/frame-validation.js';
 
 export type DSMRParserOptions =
@@ -11,14 +12,17 @@ export type DSMRParserOptions =
       newLineChars?: '\r\n' | '\n';
       /** Enable the encryption detection mechanism. Enabled by default */
       decryptionKey?: never;
+      additionalAuthenticatedData?: never;
       encoding?: never;
     }
   | {
       /** Encrypted DSMR telegram */
       telegram: Buffer;
       /** Decryption key */
-      decryptionKey?: string;
-      /** Encoding of the data in the buffer, defaults to ascii */
+      decryptionKey?: Buffer;
+      /** AAD */
+      additionalAuthenticatedData?: Buffer;
+      /** Encoding of the data in the buffer, defaults to binary */
       encoding?: BufferEncoding;
       /** New line characters */
       newLineChars?: '\r\n' | '\n';
@@ -98,6 +102,8 @@ export type DSMRParserResult = {
     value: number;
     valid: boolean;
   };
+  /** Only set when encryption is used */
+  additionalAuthenticatedDataValid?: boolean;
 };
 
 export * from './util/errors.js';
@@ -109,4 +115,5 @@ export const DSMR = {
   isValidFrame: DSMRFrameValid,
   MBUS_DEVICE_IDS,
   getMbusDevice,
+  ENCRYPTION_DEFAULT_AAD,
 } as const;
