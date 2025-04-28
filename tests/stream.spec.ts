@@ -17,6 +17,7 @@ import {
   DSMRTimeoutError,
   DSMRDecryptionError,
   DSMRParserResult,
+  DSMRParserError,
 } from '../src/index.js';
 import { ENCRYPTED_DSMR_HEADER_LEN, ENCRYPTED_DSMR_TELEGRAM_SOF } from '../src/util/encryption.js';
 
@@ -233,6 +234,128 @@ describe('DSMRStreamParser', () => {
 
       instance.destroy();
     });
+
+    it('Parses when the CRC line is missing', async (context) => {
+      context.mock.timers.enable();
+
+      const { input, output } = await readTelegramFromFiles('tests/telegrams/iskra-mt-382-no-crc');
+
+      const stream = new PassThrough();
+      const callback = mock.fn();
+
+      const instance = DSMR.createStreamParser({
+        stream,
+        callback,
+        fullFrameRequiredWithinMs: 1000,
+      });
+
+      stream.write(input);
+
+      context.mock.timers.tick(1000);
+
+      stream.end();
+      instance.destroy();
+
+      assert.deepStrictEqual(callback.mock.calls.length, 1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+    });
+
+    it('Immediately parses when CRC is missing and a 2nd telegram is received', async (context) => {
+      context.mock.timers.enable();
+
+      const { input, output } = await readTelegramFromFiles(
+        'tests/telegrams/iskra-mt-382-no-crc',
+        true,
+      );
+
+      const stream = new PassThrough();
+      const callback = mock.fn();
+
+      const instance = DSMR.createStreamParser({
+        stream,
+        callback,
+        fullFrameRequiredWithinMs: 1000,
+      });
+
+      stream.write(input);
+      stream.write(input);
+
+      assert.deepStrictEqual(callback.mock.calls.length, 1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+
+      context.mock.timers.tick(1000);
+
+      stream.end();
+      instance.destroy();
+
+      assert.deepStrictEqual(callback.mock.calls.length, 2);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output);
+    });
+
+    it('Immediately parses when CRC is missing and a three telegrams are received', async (context) => {
+      context.mock.timers.enable();
+
+      const { input, output } = await readTelegramFromFiles('tests/telegrams/iskra-mt-382-no-crc');
+
+      const stream = new PassThrough();
+      const callback = mock.fn();
+
+      const instance = DSMR.createStreamParser({
+        stream,
+        callback,
+        fullFrameRequiredWithinMs: 1000,
+      });
+
+      stream.write(input);
+      stream.write(input);
+      stream.write(input);
+
+      assert.deepStrictEqual(callback.mock.calls.length, 2);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output);
+
+      context.mock.timers.tick(1000);
+
+      stream.end();
+      instance.destroy();
+
+      assert.deepStrictEqual(callback.mock.calls.length, 3);
+      assert.deepStrictEqual(callback.mock.calls[2].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[2].arguments[1], output);
+    });
+
+    it('Handles text messages', async (context) => {
+      context.mock.timers.enable();
+
+      const { input, output } = await readTelegramFromFiles(
+        'tests/telegrams/iskra-mt-382-no-crc-with-text-message',
+      );
+
+      const stream = new PassThrough();
+      const callback = mock.fn();
+
+      const instance = DSMR.createStreamParser({
+        stream,
+        callback,
+        fullFrameRequiredWithinMs: 1000,
+      });
+
+      stream.write(input);
+
+      context.mock.timers.tick(1000);
+
+      assert.deepStrictEqual(callback.mock.calls.length, 1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+
+      stream.end();
+      instance.destroy();
+    });
   });
 
   describe('Encrypted', () => {
@@ -404,7 +527,10 @@ describe('DSMRStreamParser', () => {
       // it should be able to detect that it is an encrypted frame.
       for (let index = 1; index < callback.mock.calls.length; index++) {
         const error = callback.mock.calls[index].arguments[0] as unknown;
-        assert.ok(error instanceof DSMRDecodeError && !(error instanceof DSMRDecryptionRequired));
+        assert.ok(
+          (error instanceof DSMRDecodeError && !(error instanceof DSMRDecryptionRequired)) ||
+            error instanceof DSMRParserError,
+        );
         assert.deepStrictEqual(callback.mock.calls[index].arguments[1], undefined);
       }
     });
