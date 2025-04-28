@@ -95,38 +95,43 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
 
     const eofRegexResult = this.eofRegex.exec(this.telegram.toString(this.encoding));
 
-    // End of telegram has not been reached, wait for more data to arrive.
-    if (!eofRegexResult) return;
+    // End of telegram has not been reached.
+    if (!eofRegexResult) {
+      // Check if we've received another start of frame.
+      // Some variants of the MT382 meters don't send an eof.
+      // We skip the first byte, as this is already the sof of the current frame.
+      // Note: add 1 to the index, as we skip the first byte when doing indexOf.
+      const sofIndex = this.telegram.subarray(1).indexOf('/') + 1;
+
+      if (sofIndex === 0) return;
+
+      // Check if the characters before the sof char are newlines. Otherwise the sof
+      // can be part of a text message element of a telegram.
+      if (this.options.newLineChars === '\n' && sofIndex > 1) {
+        const bytesBeforeSof = this.telegram.subarray(sofIndex - 1, sofIndex);
+
+        // 0x0a is a newline character.
+        if (bytesBeforeSof[0] !== 0x0a) {
+          return;
+        }
+      } else if (sofIndex > 2) {
+        const bytesBeforeSof = this.telegram.subarray(sofIndex - 2, sofIndex);
+
+        // 0x0d is a carriage return and 0x0a is a newline character.
+        if (bytesBeforeSof[0] !== 0x0d || bytesBeforeSof[1] !== 0x0a) {
+          return;
+        }
+      }
+
+      // Try to parse the data up to the start of the next frame.
+      this.tryParseTelegram(sofIndex);
+
+      return;
+    }
 
     const endOfFrameIndex = eofRegexResult.index + eofRegexResult[0].length;
 
-    // Clear the full frame required timeout. The full frame
-    // has been received and the data buffer will be cleared.
-    clearTimeout(this.fullFrameRequiredTimeout);
-
-    try {
-      const result = DSMRParser({
-        telegram: this.telegram.subarray(0, endOfFrameIndex),
-        newLineChars: this.options.newLineChars,
-      });
-
-      this.options.callback(null, result);
-    } catch (error) {
-      if (error instanceof DSMRError) {
-        error.withRawTelegram(this.telegram);
-      }
-
-      this.options.callback(error, undefined);
-    }
-
-    const remainingData = this.telegram.subarray(endOfFrameIndex, this.telegram.length);
-    this.hasStartOfFrame = false;
-    this.telegram = Buffer.alloc(0);
-
-    // There might be more data in the buffer for the next telegram.
-    if (remainingData.length > 0) {
-      this.onData(remainingData);
-    }
+    this.tryParseTelegram(endOfFrameIndex);
   }
 
   private checkEncryption() {
@@ -156,10 +161,39 @@ export class UnencryptedDSMRStreamParser implements DSMRStreamParser {
     };
   }
 
+  private tryParseTelegram(frameLength: number, overrideError?: Error) {
+    // Clear the full frame required timeout. The full frame
+    // has been received and the data buffer will be cleared.
+    clearTimeout(this.fullFrameRequiredTimeout);
+
+    try {
+      const result = DSMRParser({
+        telegram: this.telegram.subarray(0, frameLength),
+        newLineChars: this.options.newLineChars,
+      });
+
+      this.options.callback(null, result);
+    } catch (err) {
+      const error = overrideError ?? err;
+      if (error instanceof DSMRError) {
+        error.withRawTelegram(this.telegram);
+      }
+
+      this.options.callback(error, undefined);
+    }
+
+    const remainingData = this.telegram.subarray(frameLength, this.telegram.length);
+    this.hasStartOfFrame = false;
+    this.telegram = Buffer.alloc(0);
+
+    // There might be more data in the buffer for the next telegram.
+    if (remainingData.length > 0) {
+      this.onData(remainingData);
+    }
+  }
+
   private onFullFrameRequiredTimeout() {
-    const error = new DSMRTimeoutError();
-    error.withRawTelegram(this.telegram);
-    this.options.callback(error, undefined);
+    this.tryParseTelegram(this.telegram.length, new DSMRTimeoutError());
 
     // Reset the entire state here, as the full frame was not received.
     this.clear();
