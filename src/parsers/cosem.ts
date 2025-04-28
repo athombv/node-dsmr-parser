@@ -194,42 +194,42 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
     },
   },
   {
-    regex: /^1-0:32\.7\.0\((\d+(\.\d+)?)\*V\)/,
+    regex: /^1-0:32\.7\.0\((\d+(\.\d+)?)\*(V|v)\)/,
     parser: ({ regexResult, result }) => {
       result.electricity.voltage = result.electricity.voltage ?? {};
       result.electricity.voltage.l1 = parseFloat(regexResult[1]);
     },
   },
   {
-    regex: /^1-0:52\.7\.0\((\d+(\.\d+)?)\*V\)/,
+    regex: /^1-0:52\.7\.0\((\d+(\.\d+)?)\*(V|v)\)/,
     parser: ({ regexResult, result }) => {
       result.electricity.voltage = result.electricity.voltage ?? {};
       result.electricity.voltage.l2 = parseFloat(regexResult[1]);
     },
   },
   {
-    regex: /^1-0:72\.7\.0\((\d+(\.\d+)?)\*V\)/,
+    regex: /^1-0:72\.7\.0\((\d+(\.\d+)?)\*(V|v)\)/,
     parser: ({ regexResult, result }) => {
       result.electricity.voltage = result.electricity.voltage ?? {};
       result.electricity.voltage.l3 = parseFloat(regexResult[1]);
     },
   },
   {
-    regex: /^1-0:31\.7\.0\((\d+(\.\d+)?)\*A\)/,
+    regex: /^1-0:31\.7\.0\((\d+(\.\d+)?)\*(A|a)\)/,
     parser: ({ regexResult, result }) => {
       result.electricity.current = result.electricity.current ?? {};
       result.electricity.current.l1 = parseFloat(regexResult[1]);
     },
   },
   {
-    regex: /^1-0:51\.7\.0\((\d+(\.\d+)?)\*A\)/,
+    regex: /^1-0:51\.7\.0\((\d+(\.\d+)?)\*(A|a)\)/,
     parser: ({ regexResult, result }) => {
       result.electricity.current = result.electricity.current ?? {};
       result.electricity.current.l2 = parseFloat(regexResult[1]);
     },
   },
   {
-    regex: /^1-0:71\.7\.0\((\d+(\.\d+)?)\*A\)/,
+    regex: /^1-0:71\.7\.0\((\d+(\.\d+)?)\*(A|a)\)/,
     parser: ({ regexResult, result }) => {
       result.electricity.current = result.electricity.current ?? {};
       result.electricity.current.l3 = parseFloat(regexResult[1]);
@@ -281,21 +281,21 @@ export const COSEM_PARSERS: COSEMDecoder[] = [
     },
   },
   {
-    regex: /^1-0:22\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-0:22\.7\.0\((\d+(\.\d+)?)\*(kW|kw)\)/,
     parser: ({ regexResult, result }) => {
       result.electricity.powerReturned = result.electricity.powerReturned ?? {};
       result.electricity.powerReturned.l1 = parseFloat(regexResult[1]);
     },
   },
   {
-    regex: /^1-0:42\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-0:42\.7\.0\((\d+(\.\d+)?)\*(kW|kw)\)/,
     parser: ({ regexResult, result }) => {
       result.electricity.powerReturned = result.electricity.powerReturned ?? {};
       result.electricity.powerReturned.l2 = parseFloat(regexResult[1]);
     },
   },
   {
-    regex: /^1-0:62\.7\.0\((\d+(\.\d+)?)\*kW\)/,
+    regex: /^1-0:62\.7\.0\((\d+(\.\d+)?)\*(kW|kw)\)/,
     parser: ({ regexResult, result }) => {
       result.electricity.powerReturned = result.electricity.powerReturned ?? {};
       result.electricity.powerReturned.l3 = parseFloat(regexResult[1]);
