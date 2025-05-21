@@ -2,7 +2,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { TEST_AAD, TEST_DECRYPTION_KEY } from '../tests/test-utils.js';
+import { TEST_AAD, TEST_DECRYPTION_KEY, writeHexFile } from '../tests/test-utils.js';
 import { decryptDlmsFrame } from '../src/protocols/encryption.js';
 
 const inputPath = process.argv[2];
@@ -51,7 +51,8 @@ const { header, footer, content, error } = decryptDlmsFrame({
 
 const resolvedOutputPath = path.resolve(process.cwd(), outputPath);
 
-await fs.writeFile(resolvedOutputPath, content, 'binary');
+// await fs.writeFile(resolvedOutputPath, content, 'binary');
+await writeHexFile(resolvedOutputPath, content);
 
 console.log('Telegram decrypted');
 console.log('Header fields:');

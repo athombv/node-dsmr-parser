@@ -10,7 +10,7 @@ import {
   HDLC_TELEGRAM_SOF_EOF,
   HdlcParserResult,
 } from './../protocols/hdlc.js';
-import { SmartMeterError, StartOfFrameNotFoundError } from '../util/errors.js';
+import { SmartMeterError, SmartMeterTimeoutError, StartOfFrameNotFoundError } from '../util/errors.js';
 import { decodeDLMSContent, decodeDlmsObis } from './../protocols/dlms.js';
 import { SmartMeterStreamCallback, SmartMeterStreamParser } from './stream.js';
 
@@ -21,20 +21,30 @@ export type DlmsStreamParserOptions = {
   decryptionKey?: Buffer;
   /** AAD */
   additionalAuthenticatedData?: Buffer;
+  /**
+   * Maximum time in milliseconds to wait for a full frame to be received. The timer starts when a
+   * valid start of frame/header is received.
+   */
+  fullFrameRequiredWithinMs?: number;
 };
 
 export class DlmsStreamParser implements SmartMeterStreamParser {
   public readonly startOfFrameByte = HDLC_TELEGRAM_SOF_EOF;
 
   private hasStartOfFrame = false;
+  private fullFrameRequiredWithinMs: number;
+  private fullFrameRequiredTimeout?: NodeJS.Timeout;
   private telegram = Buffer.alloc(0);
   private cachedContent = Buffer.alloc(0);
   private header: ReturnType<typeof decodeHdlcHeader> | undefined = undefined;
 
   private readonly boundOnData = this.onData.bind(this);
+  private readonly boundOnFullFrameRequiredTimeout = this.onFullFrameRequiredTimeout.bind(this);
 
   constructor(private options: DlmsStreamParserOptions) {
     this.options.stream.addListener('data', this.boundOnData);
+
+    this.fullFrameRequiredWithinMs = options.fullFrameRequiredWithinMs ?? 5000;
   }
 
   private onData(data: Buffer) {
@@ -46,8 +56,13 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
         error.withRawTelegram(data);
 
         this.options.callback(error, undefined);
+        return;
       }
 
+      this.fullFrameRequiredTimeout = setTimeout(
+        this.boundOnFullFrameRequiredTimeout,
+        this.fullFrameRequiredWithinMs,
+      );
       this.telegram = data.subarray(sofIndex, data.length);
       this.hasStartOfFrame = true;
     } else {
@@ -108,6 +123,8 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
 
       return;
     }
+
+    clearTimeout(this.fullFrameRequiredTimeout);
 
     try {
       const content = Buffer.concat([
@@ -186,12 +203,22 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
     }
   }
 
+  private onFullFrameRequiredTimeout() {
+    const error = new SmartMeterTimeoutError();
+    error.withRawTelegram(this.telegram);
+    this.options.callback(error, undefined);
+
+    // Reset the entire state here, as the full frame was not received.
+    this.clear();
+  }
+
   destroy(): void {
     this.options.stream.removeListener('data', this.boundOnData);
     this.clear();
   }
 
   clear(): void {
+    clearTimeout(this.fullFrameRequiredTimeout);
     this.hasStartOfFrame = false;
     this.header = undefined;
     this.telegram = Buffer.alloc(0);
@@ -199,6 +226,6 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
   }
 
   currentSize(): number {
-    throw new Error('Method not implemented.');
+    return this.telegram.length + this.cachedContent.length;
   }
 }

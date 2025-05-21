@@ -4,7 +4,7 @@ import { DSMR } from '../../src/index.js';
 import {
   encryptFrame,
   getAllDSMRTestTelegramTestCases,
-  readTelegramFromFiles,
+  readDsmrTelegramFromFiles,
   TEST_AAD,
   TEST_DECRYPTION_KEY,
 } from './../test-utils.js';
@@ -15,7 +15,7 @@ describe('DSMR', async () => {
 
   for (const testCase of testCases) {
     it(`Parses ${testCase}`, async () => {
-      const { input, output: expectedOutput } = await readTelegramFromFiles(
+      const { input, output: expectedOutput } = await readDsmrTelegramFromFiles(
         `./tests/telegrams/dsmr/${testCase}`,
       );
 
@@ -28,7 +28,7 @@ describe('DSMR', async () => {
     });
 
     it(`Parses ${testCase} with decryption (valid AAD)`, async () => {
-      const { input, output: expectedOutput } = await readTelegramFromFiles(
+      const { input, output: expectedOutput } = await readDsmrTelegramFromFiles(
         `./tests/telegrams/dsmr/${testCase}`,
       );
 
@@ -44,7 +44,7 @@ describe('DSMR', async () => {
     });
 
     it(`Parses ${testCase} with decryption (missing AAD)`, async () => {
-      const { input, output: expectedOutput } = await readTelegramFromFiles(
+      const { input, output: expectedOutput } = await readDsmrTelegramFromFiles(
         `./tests/telegrams/dsmr/${testCase}`,
       );
 
@@ -60,7 +60,7 @@ describe('DSMR', async () => {
     });
 
     it(`Parses ${testCase} with decryption (invalid AAD)`, async () => {
-      const { input, output: expectedOutput } = await readTelegramFromFiles(
+      const { input, output: expectedOutput } = await readDsmrTelegramFromFiles(
         `./tests/telegrams/dsmr/${testCase}`,
       );
 
@@ -77,7 +77,7 @@ describe('DSMR', async () => {
   }
 
   it('Gets m-bus data', async () => {
-    const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
+    const { input } = await readDsmrTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
 
     const parsed = parseDsmr({ telegram: input });
 

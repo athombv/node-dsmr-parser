@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
   readHexFile,
-  readTelegramFromFiles,
+  readDsmrTelegramFromFiles,
   TEST_AAD,
   TEST_DECRYPTION_KEY,
 } from './../test-utils.js';
@@ -11,7 +11,7 @@ import { SmartMeterDecryptionError } from '../../src/index.js';
 import { parseDsmr } from '../../src/protocols/dsmr.js';
 
 describe('Encryption', async () => {
-  const { input, output } = await readTelegramFromFiles(
+  const { input, output } = await readDsmrTelegramFromFiles(
     './tests/telegrams/dsmr/dsmr-luxembourgh-spec-example',
   );
   const encryptedWithAad = await readHexFile(

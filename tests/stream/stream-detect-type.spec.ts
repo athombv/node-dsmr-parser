@@ -1,12 +1,12 @@
 import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { describe, it, mock } from 'node:test';
-import { chunkBuffer, readHexFile, readTelegramFromFiles } from './../test-utils.js';
+import { chunkBuffer, readHexFile, readDsmrTelegramFromFiles } from './../test-utils.js';
 import { StreamDetectType } from '../../src/stream/stream-detect-type.js';
 
 describe('Stream: Detect Type', () => {
   it('Detects unencrypted DSMR telegrams', async () => {
-    const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
+    const { input } = await readDsmrTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
     const stream = new PassThrough();
     const callback = mock.fn();
 
@@ -25,7 +25,7 @@ describe('Stream: Detect Type', () => {
   });
 
   it('Detects unencrypted DSMR telegrams (chunks)', async () => {
-    const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
+    const { input } = await readDsmrTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
     const stream = new PassThrough();
     const callback = mock.fn();
 

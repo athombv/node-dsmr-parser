@@ -43,7 +43,7 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
   input = input.replace(/\r?\n/g, '\r\n');
   
   const encryptedAad = encryptFrame({
-    frame: input,
+    frame: Buffer.from(input, 'utf-8'),
     key: TEST_DECRYPTION_KEY,
     aad: TEST_AAD,
   });
@@ -54,7 +54,7 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
   );
   
   const encryptedWithoutAad = encryptFrame({
-    frame: input,
+    frame: Buffer.from(input, 'utf-8'),
     key: TEST_DECRYPTION_KEY,
   });
 
@@ -101,7 +101,11 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
 
     await new Promise((resolve) => passthrough.write(input, resolve));
 
-    const json = JSON.stringify(results, null, 2);
+    if (results.length !== 1) {
+      console.warn('Warning: more than one result found!');
+    }
+
+    const json = JSON.stringify(results[0], null, 2);
     await fs.writeFile(`./tests/telegrams/dlms/${file}.json`, json);
     parser.destroy();
   }
@@ -117,7 +121,9 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
   const hdlcHeader = decodeHdlcHeader(input);
 
   const frame = input.subarray(0, hdlcHeader.frameLength + 2);
-  const frameContent = frame.subarray(hdlcHeader.consumedBytes)
+  const frameContent = frame.subarray(hdlcHeader.consumedBytes);
+
+  console.log(`frameContent`, frameContent.subarray(0, 10))
 
   const llc = decodeLlcHeader(frameContent);
   const content = frame.subarray(
@@ -126,13 +132,14 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
   );
   
   const encryptedAad = encryptFrame({
-    frame: content.toString('binary'),
+    frame: content,
+    // frame: Buffer.from('Hello, world! 12345678901234567890123456789'),
     key: TEST_DECRYPTION_KEY,
     aad: TEST_AAD,
   });
   
   const encryptedWithoutAad = encryptFrame({
-    frame: content.toString('binary'),
+    frame: content,
     key: TEST_DECRYPTION_KEY,
   });
 

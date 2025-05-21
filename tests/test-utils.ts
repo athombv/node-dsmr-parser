@@ -24,15 +24,25 @@ export const getAllDLMSTestTelegramTestCases = async () => {
   return files.filter((file) => file.endsWith('.txt')).map((file) => file.replace('.txt', ''));
 };
 
-export const readTelegramFromFiles = async (path: string, replaceNewLines = true) => {
+export const readDsmrTelegramFromFiles = async (path: string) => {
   const input = await fs.readFile(`${path}.txt`);
   const output = await fs.readFile(`${path}.json`);
 
   return {
-    input: replaceNewLines ? input.toString().replace(/\r?\n/g, '\r\n') : input.toString(),
+    input: input.toString().replace(/\r?\n/g, '\r\n'),
     output: JSON.parse(output.toString()) as object,
   };
 };
+
+export const readDlmsTelegramFromFiles = async (path: string) => {
+  const input = await readHexFile(`${path}.txt`);
+  const output = await fs.readFile(`${path}.json`);
+
+  return {
+    input,
+    output: JSON.parse(output.toString()) as object,
+  };
+}
 
 export const readHexFile = async (path: string) => {
   const file = await fs.readFile(path, 'utf-8');
@@ -143,13 +153,16 @@ export const encryptFrame = ({
   aad,
   systemTitle,
   frameCounter,
+  frameStringEncoding,
 }: {
-  frame: string;
+  frame: Buffer | string;
   key: Buffer;
   aad?: Buffer;
   systemTitle?: Buffer;
   frameCounter?: Buffer;
+  frameStringEncoding?: BufferEncoding;
 }) => {
+  frame = Buffer.isBuffer(frame) ? frame : Buffer.from(frame, frameStringEncoding ?? 'utf-8');
   systemTitle ??= Buffer.from('systitle', 'ascii');
   // Note: for reproducing the same frame, the frame counter is always the same.
   // Real meters will change this every frame.

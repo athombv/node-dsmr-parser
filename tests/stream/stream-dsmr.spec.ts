@@ -5,7 +5,7 @@ import {
   chunkBuffer,
   chunkString,
   encryptFrame,
-  readTelegramFromFiles,
+  readDsmrTelegramFromFiles,
   TEST_AAD,
   TEST_DECRYPTION_KEY,
 } from './../test-utils.js';
@@ -44,7 +44,7 @@ const assertDecryptedFrameValid = ({
 describe('DSMRStreamParser', () => {
   describe('Unencrypted', () => {
     it('Parses a chunked unencrypted telegram', async () => {
-      const { input, output } = await readTelegramFromFiles(
+      const { input, output } = await readDsmrTelegramFromFiles(
         './tests/telegrams/dsmr/dsmr-5.0-spec-example',
       );
 
@@ -67,10 +67,10 @@ describe('DSMRStreamParser', () => {
     });
 
     it('Parses two unencrypted telegrams', async () => {
-      const { input: input1, output: output1 } = await readTelegramFromFiles(
+      const { input: input1, output: output1 } = await readDsmrTelegramFromFiles(
         './tests/telegrams/dsmr/dsmr-5.0-spec-example',
       );
-      const { input: input2, output: output2 } = await readTelegramFromFiles(
+      const { input: input2, output: output2 } = await readDsmrTelegramFromFiles(
         './tests/telegrams/dsmr/dsmr-4.0-spec-example',
       );
 
@@ -113,7 +113,7 @@ describe('DSMRStreamParser', () => {
 
     it("Doesn't throw error after receiving null character", async () => {
       // Note: some meters send a null character (\0) at the end of the telegram. This should be ignored.
-      const { input, output } = await readTelegramFromFiles(
+      const { input, output } = await readDsmrTelegramFromFiles(
         './tests/telegrams/dsmr/dsmr-5.0-spec-example',
       );
 
@@ -207,7 +207,7 @@ describe('DSMRStreamParser', () => {
     it('Parses when the CRC line is missing', async (context) => {
       context.mock.timers.enable();
 
-      const { input, output } = await readTelegramFromFiles(
+      const { input, output } = await readDsmrTelegramFromFiles(
         'tests/telegrams/dsmr/iskra-mt-382-no-crc',
       );
 
@@ -235,9 +235,8 @@ describe('DSMRStreamParser', () => {
     it('Immediately parses when CRC is missing and a 2nd telegram is received', async (context) => {
       context.mock.timers.enable();
 
-      const { input, output } = await readTelegramFromFiles(
+      const { input, output } = await readDsmrTelegramFromFiles(
         'tests/telegrams/dsmr/iskra-mt-382-no-crc',
-        true,
       );
 
       const stream = new PassThrough();
@@ -269,7 +268,7 @@ describe('DSMRStreamParser', () => {
     it('Immediately parses when CRC is missing and a three telegrams are received', async (context) => {
       context.mock.timers.enable();
 
-      const { input, output } = await readTelegramFromFiles(
+      const { input, output } = await readDsmrTelegramFromFiles(
         'tests/telegrams/dsmr/iskra-mt-382-no-crc',
       );
 
@@ -305,7 +304,7 @@ describe('DSMRStreamParser', () => {
     it('Handles text messages', async (context) => {
       context.mock.timers.enable();
 
-      const { input, output } = await readTelegramFromFiles(
+      const { input, output } = await readDsmrTelegramFromFiles(
         'tests/telegrams/dsmr/iskra-mt-382-no-crc-with-text-message',
       );
 
@@ -333,7 +332,7 @@ describe('DSMRStreamParser', () => {
 
   describe('Encrypted', () => {
     it('Parses a chunked encrypted telegram', async () => {
-      const { input, output } = await readTelegramFromFiles(
+      const { input, output } = await readDsmrTelegramFromFiles(
         './tests/telegrams/dsmr/dsmr-5.0-spec-example',
       );
       const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
@@ -365,10 +364,10 @@ describe('DSMRStreamParser', () => {
     });
 
     it('Parses two encrypted telegrams', async () => {
-      const { input: input1, output: output1 } = await readTelegramFromFiles(
+      const { input: input1, output: output1 } = await readDsmrTelegramFromFiles(
         './tests/telegrams/dsmr/dsmr-5.0-spec-example',
       );
-      const { input: input2, output: output2 } = await readTelegramFromFiles(
+      const { input: input2, output: output2 } = await readDsmrTelegramFromFiles(
         './tests/telegrams/dsmr/dsmr-4.0-spec-example',
       );
 
@@ -488,7 +487,7 @@ describe('DSMRStreamParser', () => {
     it('Throws an error if key is invalid', async () => {
       const stream = new PassThrough();
       const callback = mock.fn();
-      const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
+      const { input } = await readDsmrTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
       const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
 
       const instance = new EncryptedDSMRStreamParser({
@@ -511,7 +510,7 @@ describe('DSMRStreamParser', () => {
     it('Parses when AAD is invalid', async () => {
       const stream = new PassThrough();
       const callback = mock.fn();
-      const { input, output } = await readTelegramFromFiles(
+      const { input, output } = await readDsmrTelegramFromFiles(
         './tests/telegrams/dsmr/dsmr-5.0-spec-example',
       );
       const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
@@ -541,7 +540,7 @@ describe('DSMRStreamParser', () => {
     it('Parses when AAD is missing', async () => {
       const stream = new PassThrough();
       const callback = mock.fn();
-      const { input, output } = await readTelegramFromFiles(
+      const { input, output } = await readDsmrTelegramFromFiles(
         './tests/telegrams/dsmr/dsmr-5.0-spec-example',
       );
       const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
