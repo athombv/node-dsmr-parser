@@ -1,35 +1,25 @@
 import { Readable } from 'node:stream';
-import type { DSMRParserOptions, DSMRParserResult } from '../index.js';
 import {
-  decodeFooter,
-  decodeHeader,
+  decodeEncryptionFooter,
+  decodeEncryptionHeader,
   decryptFrameContents,
-  ENCRYPTED_DSMR_GCM_TAG_LEN,
-  ENCRYPTED_DSMR_HEADER_LEN,
-  ENCRYPTED_DSMR_TELEGRAM_SOF,
-} from '../util/encryption.js';
-import { DEFAULT_FRAME_ENCODING } from '../util/frame-validation.js';
-import { DSMRParser } from './dsmr.js';
-import { DSMRError, DSMRStartOfFrameNotFoundError, DSMRTimeoutError } from '../util/errors.js';
+  ENCRYPTED_DLMS_GCM_TAG_LEN,
+  ENCRYPTED_DLMS_HEADER_LEN,
+  ENCRYPTED_DLMS_TELEGRAM_SOF,
+} from '../protocols/encryption.js';
+import { DsmrParserOptions, DsmrParserResult, parseDsmr } from './../protocols/dsmr.js';
+import {
+  SmartMeterError,
+  StartOfFrameNotFoundError,
+  SmartMeterTimeoutError,
+} from '../util/errors.js';
+import { SmartMeterStreamCallback, SmartMeterStreamParser } from './stream.js';
 
-export type DSMRStreamParser = {
-  /** Stop the stream parser. */
-  destroy(): void;
-  /** Clear all cached data */
-  clear(): void;
-  /** Size in bytes of the data that is cached */
-  currentSize(): number;
-  /** The byte that indicates a start of frame was found for this parser */
-  readonly startOfFrameByte: number;
-};
-
-export type DSMRStreamParserOptions = Omit<DSMRParserOptions, 'telegram'> & {
+export type DSMRStreamParserOptions = Omit<DsmrParserOptions, 'telegram'> & {
   /** The stream which is going to provide the data */
   stream: Readable;
   /** The callback that will be called when a telegram was parsed. */
-  callback: DSMRStreamCallback;
-  /** Should the non-encrypted mode try to detect if the frame that is received is encrypted? */
-  detectEncryption?: boolean;
+  callback: SmartMeterStreamCallback<DsmrParserResult>;
   /**
    * Maximum time in milliseconds to wait for a full frame to be received. The timer starts when a
    * valid start of frame/header is received.
@@ -37,18 +27,16 @@ export type DSMRStreamParserOptions = Omit<DSMRParserOptions, 'telegram'> & {
   fullFrameRequiredWithinMs?: number;
 };
 
-export type DSMRStreamCallback = (error: unknown, result?: DSMRParserResult) => void;
-
-export class EncryptedDSMRStreamParser implements DSMRStreamParser {
+export class EncryptedDSMRStreamParser implements SmartMeterStreamParser {
   private hasStartOfFrame = false;
-  private header: ReturnType<typeof decodeHeader> | undefined = undefined;
+  private header: ReturnType<typeof decodeEncryptionHeader> | undefined = undefined;
   private telegram = Buffer.alloc(0);
   private fullFrameRequiredWithinMs: number;
   private fullFrameRequiredTimeout?: NodeJS.Timeout;
   private boundOnData: EncryptedDSMRStreamParser['onData'];
   private boundOnFullFrameRequiredTimeout: EncryptedDSMRStreamParser['onFullFrameRequiredTimeout'];
 
-  public readonly startOfFrameByte = ENCRYPTED_DSMR_TELEGRAM_SOF;
+  public readonly startOfFrameByte = ENCRYPTED_DLMS_TELEGRAM_SOF;
 
   constructor(private options: DSMRStreamParserOptions) {
     this.boundOnData = this.onData.bind(this);
@@ -60,11 +48,11 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
 
   private onData(data: Buffer) {
     if (!this.hasStartOfFrame) {
-      const sofIndex = data.indexOf(ENCRYPTED_DSMR_TELEGRAM_SOF);
+      const sofIndex = data.indexOf(ENCRYPTED_DLMS_TELEGRAM_SOF);
 
       // Not yet a valid frame. Discard the data
       if (sofIndex === -1) {
-        const error = new DSMRStartOfFrameNotFoundError();
+        const error = new StartOfFrameNotFoundError();
         error.withRawTelegram(data);
 
         this.options.callback(error, undefined);
@@ -81,13 +69,13 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
       this.telegram = Buffer.concat([this.telegram, data]);
     }
 
-    if (this.header === undefined && this.telegram.length >= ENCRYPTED_DSMR_HEADER_LEN) {
+    if (this.header === undefined && this.telegram.length >= ENCRYPTED_DLMS_HEADER_LEN) {
       try {
-        this.header = decodeHeader(this.telegram);
+        this.header = decodeEncryptionHeader(this.telegram);
       } catch (error) {
         this.clear();
 
-        if (error instanceof DSMRError) {
+        if (error instanceof SmartMeterError) {
           error.withRawTelegram(this.telegram);
         }
 
@@ -100,7 +88,7 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
     if (!this.header) return;
 
     const totalLength =
-      ENCRYPTED_DSMR_HEADER_LEN + this.header.contentLength + ENCRYPTED_DSMR_GCM_TAG_LEN;
+      ENCRYPTED_DLMS_HEADER_LEN + this.header.contentLength + ENCRYPTED_DLMS_GCM_TAG_LEN;
 
     // Wait until full telegram is received
     if (this.telegram.length < totalLength) return;
@@ -111,10 +99,10 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
 
     try {
       const encryptedContent = this.telegram.subarray(
-        ENCRYPTED_DSMR_HEADER_LEN,
-        ENCRYPTED_DSMR_HEADER_LEN + this.header.contentLength,
+        ENCRYPTED_DLMS_HEADER_LEN,
+        ENCRYPTED_DLMS_HEADER_LEN + this.header.contentLength,
       );
-      const footer = decodeFooter(this.telegram, this.header);
+      const footer = decodeEncryptionFooter(this.telegram, this.header);
 
       const { content, error } = decryptFrameContents({
         data: encryptedContent,
@@ -122,14 +110,12 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
         footer,
         key: this.options.decryptionKey ?? Buffer.alloc(0),
         additionalAuthenticatedData: this.options.additionalAuthenticatedData,
-        encoding: this.options.encoding ?? DEFAULT_FRAME_ENCODING,
       });
 
       decryptError = error;
 
-      const result = DSMRParser({
+      const result = parseDsmr({
         telegram: content,
-        newLineChars: this.options.newLineChars,
       });
 
       result.additionalAuthenticatedDataValid = decryptError === undefined;
@@ -140,7 +126,7 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
       // So that should be returned to the listener.
       const realError = decryptError ?? error;
 
-      if (realError instanceof DSMRError) {
+      if (realError instanceof SmartMeterError) {
         realError.withRawTelegram(this.telegram);
       }
 
@@ -160,7 +146,7 @@ export class EncryptedDSMRStreamParser implements DSMRStreamParser {
   }
 
   private onFullFrameRequiredTimeout() {
-    const error = new DSMRTimeoutError();
+    const error = new SmartMeterTimeoutError();
     error.withRawTelegram(this.telegram);
     this.options.callback(error, undefined);
 

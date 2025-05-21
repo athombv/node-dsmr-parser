@@ -5,55 +5,147 @@
  * DSMRParser.
  */
 import fs from 'fs/promises';
-import { DSMR } from '../src/index.js';
 import {
   bufferToHexString,
   encryptFrame,
-  getAllTestTelegramTestCases,
+  getAllDLMSTestTelegramTestCases,
+  getAllDSMRTestTelegramTestCases,
+  readHexFile,
   TEST_AAD,
   TEST_DECRYPTION_KEY,
+  wrapHdlcFrame,
+  writeHexFile,
 } from '../tests/test-utils.js';
+import { DlmsStreamParser } from '../src/stream/stream-dlms.js';
+import { PassThrough } from 'stream';
+import { parseDsmr } from '../src/protocols/dsmr.js';
+import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/protocols/hdlc.js';
 
-const testCases = await getAllTestTelegramTestCases();
-
-for (const file of testCases) {
-  let input = await fs.readFile(`./tests/telegrams/${file}.txt`, 'utf-8');
-  input = input.replace(/\r?\n/g, '\r\n');
-  console.log(`Parsing ${file}.txt`);
-  const parsed = DSMR.parse({ telegram: input });
-  const json = JSON.stringify(parsed, null, 2);
-  await fs.writeFile(`./tests/telegrams/${file}.json`, json);
+// Parse all DSMR telegrams
+{
+  const testCases = await getAllDSMRTestTelegramTestCases();
+  
+  for (const file of testCases) {
+    let input = await fs.readFile(`./tests/telegrams/dsmr/${file}.txt`, 'utf-8');
+    input = input.replace(/\r?\n/g, '\r\n');
+    console.log(`Parsing ${file}.txt`);
+    const parsed = parseDsmr({ telegram: input });
+    const json = JSON.stringify(parsed, null, 2);
+    await fs.writeFile(`./tests/telegrams/dsmr/${file}.json`, json);
+  }
 }
 
-const fileToEncrypt = 'dsmr-luxembourgh-spec-example';
-console.log(`Using ${fileToEncrypt} as test case for encrypted telegrams`);
+// Encrypted DSMR frames
+{
+  const fileToEncrypt = 'dsmr-luxembourgh-spec-example';
+  console.log(`Using ${fileToEncrypt} as test case for encrypted DSMR telegrams`);
+  
+  let input = await fs.readFile(`./tests/telegrams/dsmr/${fileToEncrypt}.txt`, 'utf-8');
+  input = input.replace(/\r?\n/g, '\r\n');
+  
+  const encryptedAad = encryptFrame({
+    frame: input,
+    key: TEST_DECRYPTION_KEY,
+    aad: TEST_AAD,
+  });
+  
+  await writeHexFile(
+    `./tests/telegrams/dsmr/encrypted/${fileToEncrypt}-with-aad.txt`,
+    encryptedAad,
+  );
+  
+  const encryptedWithoutAad = encryptFrame({
+    frame: input,
+    key: TEST_DECRYPTION_KEY,
+  });
 
-let input = await fs.readFile(`./tests/telegrams/${fileToEncrypt}.txt`, 'utf-8');
-input = input.replace(/\r?\n/g, '\r\n');
+  await writeHexFile(
+    `./tests/telegrams/dsmr/encrypted/${fileToEncrypt}-without-aad.txt`,
+    encryptedWithoutAad,
+  );
+}
 
-const encryptedAad = encryptFrame({
-  frame: input,
-  key: TEST_DECRYPTION_KEY,
-  aad: TEST_AAD,
-});
+// Parse all DLMS telegrams
+{
+  const dlmsTestCases = await getAllDLMSTestTelegramTestCases();
 
-const hexStringAad = bufferToHexString(encryptedAad);
+  for (const file of dlmsTestCases) {
+    console.log(`Parsing ${file}.txt`);
+    const input = await readHexFile(`./tests/telegrams/dlms/${file}.txt`);
 
-await fs.writeFile(
-  `./tests/telegrams/encrypted/${fileToEncrypt}-with-aad.txt`,
-  hexStringAad,
-  'utf8',
-);
+    const passthrough = new PassThrough();
 
-const encryptedWithoutAad = encryptFrame({
-  frame: input,
-  key: TEST_DECRYPTION_KEY,
-});
+    const results: object[] = [];
 
-const hexStringWithoutAad = bufferToHexString(encryptedWithoutAad);
+    const parser = new DlmsStreamParser({
+      stream: passthrough,
+      callback: (error, result) => {
+        if (error) {
+          if (error instanceof Error) {
+            results.push({
+              error: {
+                message: error.message,
+                name: error.name,
+                stack: error.stack,
+              },
+            });
+          } else {
+            results.push({
+              error,
+            });
+          }
+        } else if (result) {
+          results.push(result);
+        }
+      },
+    });
 
-await fs.writeFile(
-  `./tests/telegrams/encrypted/${fileToEncrypt}-without-aad.txt`,
-  hexStringWithoutAad,
-  'utf8',
-);
+    await new Promise((resolve) => passthrough.write(input, resolve));
+
+    const json = JSON.stringify(results, null, 2);
+    await fs.writeFile(`./tests/telegrams/dlms/${file}.json`, json);
+    parser.destroy();
+  }
+}
+
+// Encrypted DLMS frames
+{
+  const dlmsFileToEncrypt = 'aidon-example-2';
+  console.log(`Using ${dlmsFileToEncrypt} as test case for encrypted DLMS telegrams`);
+  
+  const input = await readHexFile(`./tests/telegrams/dlms/${dlmsFileToEncrypt}.txt`);
+
+  const hdlcHeader = decodeHdlcHeader(input);
+
+  const frame = input.subarray(0, hdlcHeader.frameLength + 2);
+  const frameContent = frame.subarray(hdlcHeader.consumedBytes)
+
+  const llc = decodeLlcHeader(frameContent);
+  const content = frame.subarray(
+    hdlcHeader.consumedBytes + llc.consumedBytes,
+    frame.length - HDLC_FOOTER_LENGTH,
+  );
+  
+  const encryptedAad = encryptFrame({
+    frame: content.toString('binary'),
+    key: TEST_DECRYPTION_KEY,
+    aad: TEST_AAD,
+  });
+  
+  const encryptedWithoutAad = encryptFrame({
+    frame: content.toString('binary'),
+    key: TEST_DECRYPTION_KEY,
+  });
+
+  const frameWithAad = wrapHdlcFrame(encryptedAad);
+  const frameWithoutAad = wrapHdlcFrame(encryptedWithoutAad);
+
+  await writeHexFile(
+    `./tests/telegrams/dlms/encrypted/${dlmsFileToEncrypt}-with-aad.txt`,
+    frameWithAad,
+  );
+  await writeHexFile(
+    `./tests/telegrams/dlms/encrypted/${dlmsFileToEncrypt}-without-aad.txt`,
+    frameWithoutAad,
+  );
+}

@@ -1,18 +1,26 @@
 import crypto from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import {
-  ENCRYPTED_DSMR_GCM_TAG_LEN,
-  ENCRYPTED_DSMR_HEADER_LEN,
-  ENCRYPTED_DSMR_CONTENT_LENGTH_START,
-  ENCRYPTED_DSMR_SYSTEM_TITLE_LEN,
-  ENCRYPTED_DSMR_TELEGRAM_SOF,
-} from '../src/util/encryption.js';
+  ENCRYPTED_DLMS_GCM_TAG_LEN,
+  ENCRYPTED_DLMS_HEADER_LEN,
+  ENCRYPTED_DLMS_SYSTEM_TITLE_LEN,
+  ENCRYPTED_DLMS_TELEGRAM_SOF,
+} from '../src/protocols/encryption.js';
+import { HDLC_TELEGRAM_SOF_EOF, HDLC_LLC_DESTINATION, HDLC_LLC_SOURCE, HDLC_LLC_QUALITY, HDLC_FORMAT_START } from '../src/protocols/hdlc.js';
+import { calculateCrc16IbmSdlc } from '../src/util/crc.js';
 
 export const TEST_DECRYPTION_KEY = Buffer.from('0123456789abcdef01234567890abcdef', 'hex');
 export const TEST_AAD = Buffer.from('ffeeddccbbaa99887766554433221100', 'hex');
+export const DSMR_TEST_FOLDER = './tests/telegrams/dsmr';
+export const DLMS_TEST_FOLDER = './tests/telegrams/dlms';
 
-export const getAllTestTelegramTestCases = async () => {
-  const files = await fs.readdir('./tests/telegrams');
+export const getAllDSMRTestTelegramTestCases = async () => {
+  const files = await fs.readdir(DSMR_TEST_FOLDER);
+  return files.filter((file) => file.endsWith('.txt')).map((file) => file.replace('.txt', ''));
+};
+
+export const getAllDLMSTestTelegramTestCases = async () => {
+  const files = await fs.readdir(DLMS_TEST_FOLDER);
   return files.filter((file) => file.endsWith('.txt')).map((file) => file.replace('.txt', ''));
 };
 
@@ -29,7 +37,22 @@ export const readTelegramFromFiles = async (path: string, replaceNewLines = true
 export const readHexFile = async (path: string) => {
   const file = await fs.readFile(path, 'utf-8');
 
-  return Buffer.from(file.replace(/\s/g, ''), 'hex');
+  // Replace all comments in the file
+  const cleanedFile = file.replace(/#.*$/gm, '');
+  const cleanedFile2 = cleanedFile.replace(/\/\/.*$/gm, '');
+
+  return Buffer.from(cleanedFile2.replace(/\s/g, ''), 'hex');
+};
+
+export const writeHexFile = async (path: string, data: Buffer) => {
+  const hexString = bufferToHexString(data);
+  await fs.writeFile(path, hexString);
+
+  return hexString;
+};
+
+export const numToHex = (num: number, minDigits = 2) => {
+  return `0x${num.toString(16).padStart(minDigits, '0')}`;
 };
 
 export const chunkString = (str: string, chunkSize: number) => {
@@ -56,11 +79,63 @@ export const bufferToHexString = (buffer: Buffer) => {
   let hexString = '';
 
   for (let i = 0; i < buffer.length; i += 16) {
-    hexString += buffer.subarray(i, i + 16).toString('hex') + '\n';
+    hexString +=
+      buffer
+        .subarray(i, i + 16)
+        .toString('hex')
+        .match(/.{1,2}/g)
+        ?.join(' ') + '\n';
   }
 
   return hexString;
 };
+
+export const wrapHdlcFrame = (frame: Buffer) => {
+  const hdlcHeader = Buffer.from([
+    HDLC_TELEGRAM_SOF_EOF, // 0: SOF
+    0x00, // 1: Format type + length
+    0x00, // 2: Length
+    0x03, // 3: Destination address,
+    0x05, // 4: Source Address,
+    0x00, // 5: Control byte,
+    0x00, // 6: Checksum
+    0x00, // 7: Checksum,
+    HDLC_LLC_DESTINATION, // 8: LLC Destination
+    HDLC_LLC_SOURCE, // 9: LLC Source
+    HDLC_LLC_QUALITY, // 10: LLC Quality
+  ]);
+  
+  const hdlcFooter = Buffer.from([
+    0x00, // Checksum
+    0x00, // Checksum
+    HDLC_TELEGRAM_SOF_EOF,
+  ]);
+  
+  // Frame length is total length - 2 (SOF and EOF)
+  const frameLength = frame.length + hdlcHeader.length + hdlcFooter.length - 2;
+  
+  if (frameLength > 0x7ff) {
+    throw new Error('Frame length is too long to fit in HDLC');
+  }
+  
+  // Leave segmentation bit to 0.
+  hdlcHeader[1] = (HDLC_FORMAT_START << 4) | ((frameLength >> 8) & 0x07);
+  hdlcHeader[2] = frameLength & 0xff;
+  
+  // Don't include SOF in the checksum calculation
+  const headerChecksum = calculateCrc16IbmSdlc(hdlcHeader.subarray(1, 6));
+  
+  hdlcHeader.writeUint16LE(headerChecksum, 6);
+  
+  const frameUntilFooter = Buffer.concat([hdlcHeader, frame]);
+  
+  // Don't include SOF in the checksum calculation
+  const footerChecksum = calculateCrc16IbmSdlc(frameUntilFooter.subarray(1));
+  
+  hdlcFooter.writeUint16LE(footerChecksum, 0);
+  
+  return Buffer.concat([frameUntilFooter, hdlcFooter]);
+}
 
 export const encryptFrame = ({
   frame,
@@ -82,7 +157,7 @@ export const encryptFrame = ({
 
   const iv = Buffer.concat([systemTitle, frameCounter]);
   const cipher = crypto.createCipheriv('aes-128-gcm', key, iv, {
-    authTagLength: ENCRYPTED_DSMR_GCM_TAG_LEN,
+    authTagLength: ENCRYPTED_DLMS_GCM_TAG_LEN,
   });
 
   if (aad?.length == 16) {
@@ -97,16 +172,17 @@ export const encryptFrame = ({
   const gcmTag = cipher.getAuthTag();
 
   const result = Buffer.alloc(
-    ENCRYPTED_DSMR_HEADER_LEN + encryptedFrame.length + ENCRYPTED_DSMR_GCM_TAG_LEN,
+    ENCRYPTED_DLMS_HEADER_LEN + encryptedFrame.length + ENCRYPTED_DLMS_GCM_TAG_LEN,
   );
 
   let index = 0;
-  result.writeUint8(ENCRYPTED_DSMR_TELEGRAM_SOF, index++);
-  result.writeUint8(ENCRYPTED_DSMR_SYSTEM_TITLE_LEN, index++);
+  result.writeUint8(ENCRYPTED_DLMS_TELEGRAM_SOF, index++);
+  result.writeUint8(ENCRYPTED_DLMS_SYSTEM_TITLE_LEN, index++);
   systemTitle.copy(result, index);
-  index += ENCRYPTED_DSMR_SYSTEM_TITLE_LEN;
-  result.writeUInt8(ENCRYPTED_DSMR_CONTENT_LENGTH_START, index++);
-  result.writeUint16BE(encryptedFrame.length + ENCRYPTED_DSMR_HEADER_LEN - 1, index);
+  index += ENCRYPTED_DLMS_SYSTEM_TITLE_LEN;
+  // 0x82 is indicating that a 16 byte length follows.
+  result.writeUInt8(0x82, index++);
+  result.writeUint16BE(encryptedFrame.length + ENCRYPTED_DLMS_HEADER_LEN - 1, index);
   index += 2;
   result.writeUInt8(0x30, index++);
   frameCounter.copy(result, index);

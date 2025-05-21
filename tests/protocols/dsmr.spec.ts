@@ -1,40 +1,40 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { DSMR } from '../src/index.js';
+import { DSMR } from '../../src/index.js';
 import {
   encryptFrame,
-  getAllTestTelegramTestCases,
+  getAllDSMRTestTelegramTestCases,
   readTelegramFromFiles,
   TEST_AAD,
   TEST_DECRYPTION_KEY,
-} from './test-utils.js';
+} from './../test-utils.js';
+import { isDsmrCrcValid, parseDsmr } from '../../src/protocols/dsmr.js';
 
-describe('DSMR Parser', async () => {
-  const testCases = await getAllTestTelegramTestCases();
+describe('DSMR', async () => {
+  const testCases = await getAllDSMRTestTelegramTestCases();
 
   for (const testCase of testCases) {
     it(`Parses ${testCase}`, async () => {
       const { input, output: expectedOutput } = await readTelegramFromFiles(
-        `./tests/telegrams/${testCase}`,
+        `./tests/telegrams/dsmr/${testCase}`,
       );
 
-      const parsed = DSMR.parse({
-        telegram: input,
-      });
+      const parsed = parseDsmr({ telegram: input });
 
-      // @ts-expect-error raw is not typed
-      assert.equal(parsed.raw, expectedOutput.raw);
+      // @ts-expect-error output is not typed
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      assert.equal(parsed.dsmr.raw, expectedOutput.dsmr.raw);
       assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
     });
 
     it(`Parses ${testCase} with decryption (valid AAD)`, async () => {
       const { input, output: expectedOutput } = await readTelegramFromFiles(
-        `./tests/telegrams/${testCase}`,
+        `./tests/telegrams/dsmr/${testCase}`,
       );
 
       const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
 
-      const parsed = DSMR.parse({
+      const parsed = parseDsmr({
         telegram: encrypted,
         decryptionKey: TEST_DECRYPTION_KEY,
         additionalAuthenticatedData: TEST_AAD,
@@ -45,12 +45,12 @@ describe('DSMR Parser', async () => {
 
     it(`Parses ${testCase} with decryption (missing AAD)`, async () => {
       const { input, output: expectedOutput } = await readTelegramFromFiles(
-        `./tests/telegrams/${testCase}`,
+        `./tests/telegrams/dsmr/${testCase}`,
       );
 
       const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
 
-      const parsed = DSMR.parse({
+      const parsed = parseDsmr({
         telegram: encrypted,
         decryptionKey: TEST_DECRYPTION_KEY,
         additionalAuthenticatedData: undefined,
@@ -61,12 +61,12 @@ describe('DSMR Parser', async () => {
 
     it(`Parses ${testCase} with decryption (invalid AAD)`, async () => {
       const { input, output: expectedOutput } = await readTelegramFromFiles(
-        `./tests/telegrams/${testCase}`,
+        `./tests/telegrams/dsmr/${testCase}`,
       );
 
       const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
 
-      const parsed = DSMR.parse({
+      const parsed = parseDsmr({
         telegram: encrypted,
         decryptionKey: TEST_DECRYPTION_KEY,
         additionalAuthenticatedData: Buffer.from('invalid-aad12345', 'ascii'),
@@ -77,9 +77,9 @@ describe('DSMR Parser', async () => {
   }
 
   it('Gets m-bus data', async () => {
-    const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr-5.0-spec-example');
+    const { input } = await readTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
 
-    const parsed = DSMR.parse({ telegram: input });
+    const parsed = parseDsmr({ telegram: input });
 
     const mbusData = DSMR.getMbusDevice('gas', parsed);
 
@@ -91,28 +91,27 @@ describe('DSMR Parser', async () => {
     const input = "Hello, world! I'm not a valid telegram.";
 
     assert.throws(() => {
-      DSMR.parse({ telegram: input });
+      parseDsmr({ telegram: input });
     });
   });
 
-  it('Decodes using \\n characters', async () => {
-    // Note: use this file specifically because it doesn't have a CRC. The CRC is calculated using \r\n characters in
-    // the other files, thus the assert would fail.
-    const { input, output } = await readTelegramFromFiles(
-      './tests/telegrams/dsmr-3.0-spec-example',
-      false,
-    );
-
-    // Need to manually replace \r\n with \n because the expected output is using \r\n
-    // @ts-expect-error output is not typed
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    output.raw = output.raw.replace(/\r\n/g, '\n');
-
-    const parsed = DSMR.parse({
-      telegram: input,
-      newLineChars: '\n',
+  describe('CRC Validation', () => {
+    it('Marks valid CRCs as valid', () => {
+      const invalid = '/TST512345\r\n\r\nHello, world!\r\n!25b5\r\n';
+      const isValid = isDsmrCrcValid({
+        telegram: invalid,
+        crc: 0x25b5,
+      });
+      assert.equal(isValid, true);
     });
 
-    assert.deepStrictEqual(parsed, output);
+    it('Marks invalid CRCs as invalid', () => {
+      const invalid = '/TST512345\r\n\r\nHello, world!\r\n!25b5\r\n';
+      const isValid = isDsmrCrcValid({
+        telegram: invalid,
+        crc: 0x25b5 + 1,
+      });
+      assert.equal(isValid, false);
+    });
   });
 });

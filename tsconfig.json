@@ -1,6 +1,6 @@
 {
   "extends": "./node_modules/@tsconfig/node18/tsconfig.json",
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "tools/*.ts"],
   "compilerOptions": {
     "declaration": true /* Generate .d.ts files from TypeScript and JavaScript files in your project. */,
     "outDir": "./dist" /* Specify an output folder for all emitted files. */,

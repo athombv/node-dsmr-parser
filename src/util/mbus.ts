@@ -1,4 +1,4 @@
-import type { DSMRParserResult } from '../index.js';
+import type { SmartMeterParserResult } from '../index.js';
 
 export const MBUS_DEVICE_IDS = {
   gas: 0x03,
@@ -8,7 +8,7 @@ export const MBUS_DEVICE_IDS = {
 
 export const getMbusDevice = (
   deviceId: number | keyof typeof MBUS_DEVICE_IDS,
-  parsedData: DSMRParserResult,
+  parsedData: SmartMeterParserResult,
 ) => {
   const id = typeof deviceId === 'number' ? deviceId : MBUS_DEVICE_IDS[deviceId];
 

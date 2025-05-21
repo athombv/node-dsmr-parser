@@ -1,9 +1,9 @@
 import * as crypto from 'node:crypto';
-import { DSMRDecodeError, DSMRDecryptionError } from './errors.js';
+import { SmartMeterDecodeError, SmartMeterDecryptionError } from './../util/errors.js';
+import { getDlmsObjectCount } from './dlms-datatype.js';
 
 /**
- * For now this is specific to the luxembourg's smart metering system. (E-Meter P1 Specification)
- * They wrap a DSMR telegram in a custom frame with the following format:
+ * Encrypted DSMR/DLMS frames have the following format:
  *
  * | Byte   | Description          | Example                             |
  * | ------ | -------------------- | ----------------------------------- |
@@ -17,61 +17,58 @@ import { DSMRDecodeError, DSMRDecryptionError } from './errors.js';
  * | 18-n   | Frame                | <Encrypted DSMR frame>              |
  * | n-n+12 | GCM Tag              | 00 11 22 33 44 55 66 77 88 99 AA BB |
  *
- * The encrypted DSMR frame is encrypted using AES-128-GCM, and the user can request the encryption
- * key from the utility company. The IV is the concatenation of the system title and the frame
- * counter.
+ * The encrypted DSMR/DLMS frame is encrypted using AES-128-GCM, and the user can request the
+ * encryption key from the utility company. The IV is the concatenation of the system title and the
+ * frame counter.
  *
- * Length of frame is 17 (header length) + length of the encrypted DSMR frame. GCM tag length is
- * excluded.
+ * Length of frame is 17 (header length, excluding sof) + length of the encrypted DSMR frame. GCM
+ * tag length is excluded.
  */
 
-export const ENCRYPTED_DSMR_TELEGRAM_SOF = 0xdb; // DLMS_COMMAND_GENERAL_GLO_CIPHERING
-export const ENCRYPTED_DSMR_CONTENT_LENGTH_START = 0x82; // DLMS type for uint16_t (Big Endian)
-export const ENCRYPTED_DSMR_SECURITY_TYPE = 0x30; // DLMS_SECURITY_AUTHENTICATION_ENCRYPTION
-export const ENCRYPTED_DSMR_SYSTEM_TITLE_LEN = 8;
-export const ENCRYPTED_DSMR_GCM_TAG_LEN = 12;
-export const ENCRYPTED_DSMR_HEADER_LEN = 18;
-export const ENCRYPTION_DEFAULT_AAD = Buffer.from('00112233445566778899aabbccddeeff', 'hex');
+export const ENCRYPTED_DLMS_TELEGRAM_SOF = 0xdb; // DLMS_COMMAND_GENERAL_GLO_CIPHERING
+export const ENCRYPTED_DLMS_AUTHENTICATION_ENCRYPTION_TAG = 0x30; // DLMS_SECURITY_AUTHENTICATION_ENCRYPTION
+export const ENCRYPTED_DLMS_ENCRYPTION_TAG = 0x20; // DLMS_SECURITY_ENCRYPTION
+export const ENCRYPTED_DLMS_SYSTEM_TITLE_LEN = 8;
+export const ENCRYPTED_DLMS_GCM_TAG_LEN = 12;
+export const ENCRYPTED_DLMS_HEADER_LEN = 18;
+export const ENCRYPTED_DLMS_DEFAULT_AAD = Buffer.from('00112233445566778899aabbccddeeff', 'hex');
 
 /**
  * @param data A buffer that starts with the header (bytes 0-16) of the E-Meter P1 frame
  * @returns Decoded header
  */
-export const decodeHeader = (data: Buffer) => {
-  if (data.length < ENCRYPTED_DSMR_HEADER_LEN) {
-    throw new DSMRDecodeError('Invalid header length');
+export const decodeEncryptionHeader = (data: Buffer) => {
+  if (data.length < ENCRYPTED_DLMS_HEADER_LEN) {
+    throw new SmartMeterDecodeError('Invalid header length');
   }
 
   let index = 0;
 
   const sof = data[index++];
-  if (sof !== ENCRYPTED_DSMR_TELEGRAM_SOF) {
-    throw new DSMRDecodeError(`Invalid telegram sof 0x${sof.toString(16)}`);
+  if (sof !== ENCRYPTED_DLMS_TELEGRAM_SOF) {
+    throw new SmartMeterDecodeError(`Invalid telegram sof 0x${sof.toString(16)}`);
   }
 
   const systemTitleLen = data[index++];
-  if (systemTitleLen !== ENCRYPTED_DSMR_SYSTEM_TITLE_LEN) {
-    throw new DSMRDecodeError(`Invalid system title length 0x${systemTitleLen.toString(16)}`);
+  if (systemTitleLen !== ENCRYPTED_DLMS_SYSTEM_TITLE_LEN) {
+    throw new SmartMeterDecodeError(`Invalid system title length 0x${systemTitleLen.toString(16)}`);
   }
 
-  const systemTitle = data.subarray(index, index + ENCRYPTED_DSMR_SYSTEM_TITLE_LEN);
-  index += ENCRYPTED_DSMR_SYSTEM_TITLE_LEN;
+  const systemTitle = data.subarray(index, index + ENCRYPTED_DLMS_SYSTEM_TITLE_LEN);
+  index += ENCRYPTED_DLMS_SYSTEM_TITLE_LEN;
 
-  const contentLengthStart = data[index++];
-  if (contentLengthStart !== ENCRYPTED_DSMR_CONTENT_LENGTH_START) {
-    throw new DSMRDecodeError(
-      `Invalid content length start byte 0x${contentLengthStart.toString(16)}`,
-    );
-  }
+  const { objectCount: frameLength, newIndex } = getDlmsObjectCount(data, index);
+  index = newIndex;
 
-  // The entire header is 18 bytes long, but for some reason the content length uses 17 as
-  // length for the header. Maybe they don't include the SOF byte?
-  const contentLength = data.readUInt16BE(index) + 1 - ENCRYPTED_DSMR_HEADER_LEN;
-  index += 2;
+  // The entire header is 18 bytes long, but the SOF is not included in the frame length.
+  const contentLength = frameLength + 1 - ENCRYPTED_DLMS_HEADER_LEN;
 
   const securityType = data[index++];
-  if (securityType !== ENCRYPTED_DSMR_SECURITY_TYPE) {
-    throw new DSMRDecodeError(`Invalid frame counter 0x${securityType.toString(16)}`);
+  if (
+    securityType !== ENCRYPTED_DLMS_AUTHENTICATION_ENCRYPTION_TAG &&
+    securityType !== ENCRYPTED_DLMS_ENCRYPTION_TAG
+  ) {
+    throw new SmartMeterDecodeError(`Invalid security type 0x${securityType.toString(16)}`);
   }
 
   const frameCounter = data.subarray(index, index + 4);
@@ -82,6 +79,7 @@ export const decodeHeader = (data: Buffer) => {
     frameCounter,
     securityType,
     contentLength,
+    consumedBytes: index,
   };
 };
 
@@ -89,15 +87,18 @@ export const decodeHeader = (data: Buffer) => {
  * @param data A buffer that ends with the footer (bytes n-12 to n) of the E-Meter P1 frame
  * @returns Decoded footer
  */
-export const decodeFooter = (data: Buffer, header: ReturnType<typeof decodeHeader>) => {
-  if (data.length < ENCRYPTED_DSMR_GCM_TAG_LEN) {
-    throw new DSMRDecodeError('Invalid footer length');
+export const decodeEncryptionFooter = (
+  data: Buffer,
+  header: ReturnType<typeof decodeEncryptionHeader>,
+) => {
+  if (data.length < ENCRYPTED_DLMS_GCM_TAG_LEN) {
+    throw new SmartMeterDecodeError('Invalid footer length');
   }
 
   return {
     gcmTag: data.subarray(
-      ENCRYPTED_DSMR_HEADER_LEN + header.contentLength,
-      ENCRYPTED_DSMR_HEADER_LEN + header.contentLength + ENCRYPTED_DSMR_GCM_TAG_LEN,
+      header.consumedBytes + header.contentLength,
+      header.consumedBytes + header.contentLength + ENCRYPTED_DLMS_GCM_TAG_LEN,
     ),
   };
 };
@@ -108,18 +109,16 @@ export const decryptFrameContents = ({
   header,
   footer,
   key,
-  encoding,
   additionalAuthenticatedData,
 }: {
   /** The encrypted DSMR frame */
   data: Buffer;
-  /** The decoded header (use {@link decodeHeader}) */
-  header: ReturnType<typeof decodeHeader>;
-  /** The decoded footer (use {@link decodeFooter}) */
-  footer: ReturnType<typeof decodeFooter>;
+  /** The decoded header (use {@link decodeEncryptionHeader}) */
+  header: ReturnType<typeof decodeEncryptionHeader>;
+  /** The decoded footer (use {@link decodeEncryptionFooter}) */
+  footer: ReturnType<typeof decodeEncryptionFooter>;
   /** The encryption key */
   key: Buffer;
-  encoding: BufferEncoding;
   /** Optional additional authenticated data (AAD) to be used in the decryption. */
   additionalAuthenticatedData?: Buffer;
 }) => {
@@ -133,14 +132,14 @@ export const decryptFrameContents = ({
 
   const iv = Buffer.concat([header.systemTitle, header.frameCounter]);
   let cipher: crypto.DecipherGCM;
-  let content = '';
+  let content = Buffer.alloc(0);
 
   // 1: decrypt the frame, this will only throw if the key, iv or AAD are not
   // correct due to their format. `cipher.update` will never throw, but if the key/iv/aad
   // are not valid it may return gibberish.
   try {
     cipher = crypto.createDecipheriv('aes-128-gcm', key, iv, {
-      authTagLength: ENCRYPTED_DSMR_GCM_TAG_LEN,
+      authTagLength: ENCRYPTED_DLMS_GCM_TAG_LEN,
     });
     cipher.setAutoPadding(false);
     cipher.setAuthTag(footer.gcmTag);
@@ -149,11 +148,11 @@ export const decryptFrameContents = ({
       cipher.setAAD(additionalAuthenticatedData);
     }
 
-    content += cipher.update(data, undefined, encoding);
+    content = Buffer.concat([content, cipher.update(data)]);
   } catch (error) {
     return {
       content,
-      error: new DSMRDecryptionError(error),
+      error: new SmartMeterDecryptionError(error),
     };
   }
 
@@ -161,11 +160,11 @@ export const decryptFrameContents = ({
   // When either of these are invalid, it will throw an "Unsupported state or unable to authenticate data" error.
   // If the AAD is invalid, but the key/iv are valid the content can still be a valid DSMR frame!
   try {
-    content += cipher.final(encoding);
+    content = Buffer.concat([content, cipher.final()]);
   } catch (error) {
     return {
       content,
-      error: new DSMRDecryptionError(error),
+      error: new SmartMeterDecryptionError(error),
     };
   }
 
@@ -174,23 +173,21 @@ export const decryptFrameContents = ({
   };
 };
 
-/** Decrypts a full encrypted DSMR frame */
-export const decryptFrame = ({
+/** Decrypts a full encrypted DLMS frame */
+export const decryptDlmsFrame = ({
   data,
   key,
-  encoding,
   additionalAuthenticatedData,
 }: {
   data: Buffer;
   key: Buffer;
   additionalAuthenticatedData?: Buffer;
-  encoding: BufferEncoding;
 }) => {
-  const header = decodeHeader(data);
-  const footer = decodeFooter(data, header);
+  const header = decodeEncryptionHeader(data);
+  const footer = decodeEncryptionFooter(data, header);
   const encryptedContent = data.subarray(
-    ENCRYPTED_DSMR_HEADER_LEN,
-    ENCRYPTED_DSMR_HEADER_LEN + header.contentLength,
+    header.consumedBytes,
+    header.consumedBytes + header.contentLength,
   );
   const { content, error } = decryptFrameContents({
     data: encryptedContent,
@@ -198,7 +195,6 @@ export const decryptFrame = ({
     footer,
     key,
     additionalAuthenticatedData,
-    encoding,
   });
 
   return {
