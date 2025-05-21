@@ -3,10 +3,10 @@ import path from 'node:path';
 import { inspect } from 'node:util';
 
 import {
-  decodeHdlcFooter,
   decodeHdlcHeader,
   decodeLlcHeader,
   HDLC_FOOTER_LENGTH,
+  HdlcParserResult,
 } from '../src/protocols/hdlc.js';
 import { bufferToHexString, numToHex, readHexFile } from '../tests/test-utils.js';
 import { decodeDLMSContent, decodeDlmsObis } from '../src/protocols/dlms.js';
@@ -98,18 +98,49 @@ console.log(` - Timestamp: ${dlmsContent.timestamp.toString('hex')}`);
 console.log(` - DLMS Data:`);
 console.log(dlmsDataTypeToList(dlmsContent.data, '  '));
 
-const energyContent = decodeDlmsObis(dlmsContent);
-delete energyContent.hdlc;
+const result: HdlcParserResult = {
+  hdlc: {
+    raw: '',
+    header: {
+      destinationAddress: 0,
+      sourceAddress: 0,
+      crc: {
+        value: 0,
+        valid: false,
+      },
+    },
+    crc: {
+      value: 0,
+      valid: false,
+    },
+  },
+  // DLMS properties will be filled in by `decodeDlmsObis`
+  dlms: {
+    invokeId: 0,
+    timestamp: '',
+    unknownObjects: [],
+    payloadType: '',
+  },
+  cosem: {
+    unknownObjects: [],
+    knownObjects: [],
+  },
+  electricity: {},
+  mBus: {},
+  metadata: {},
+};
+
+decodeDlmsObis(dlmsContent, result);
+// @ts-expect-error TS is not happy that we delete this property.
+delete result.hdlc;
 
 console.log('Content Parsed:');
-if (energyContent.dlms?.unknownObjects) {
+if (result.dlms?.unknownObjects) {
   console.log('Unknown Objects:');
-  console.log(objectToList(energyContent.dlms?.unknownObjects, '  '));
+  console.log(objectToList(result.dlms?.unknownObjects, '  '));
   console.log('Parsed Objects:');
 }
-delete energyContent.dlms;
-console.log(objectToList(energyContent, '  '));
 
-const footer = decodeHdlcFooter(frame);
-console.log('Footer:');
-console.log(` - CRC: ${numToHex(footer.crc)} (valid: ${footer.crcValid})`);
+// @ts-expect-error TS is not happy that we delete this property.
+delete result.dlms;
+console.log(objectToList(result, '  '));

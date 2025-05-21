@@ -6,7 +6,13 @@ import {
   ENCRYPTED_DLMS_SYSTEM_TITLE_LEN,
   ENCRYPTED_DLMS_TELEGRAM_SOF,
 } from '../src/protocols/encryption.js';
-import { HDLC_TELEGRAM_SOF_EOF, HDLC_LLC_DESTINATION, HDLC_LLC_SOURCE, HDLC_LLC_QUALITY, HDLC_FORMAT_START } from '../src/protocols/hdlc.js';
+import {
+  HDLC_TELEGRAM_SOF_EOF,
+  HDLC_LLC_DESTINATION,
+  HDLC_LLC_SOURCE,
+  HDLC_LLC_QUALITY,
+  HDLC_FORMAT_START,
+} from '../src/protocols/hdlc.js';
 import { calculateCrc16IbmSdlc } from '../src/util/crc.js';
 
 export const TEST_DECRYPTION_KEY = Buffer.from('0123456789abcdef01234567890abcdef', 'hex');
@@ -42,7 +48,7 @@ export const readDlmsTelegramFromFiles = async (path: string) => {
     input,
     output: JSON.parse(output.toString()) as object,
   };
-}
+};
 
 export const readHexFile = async (path: string) => {
   const file = await fs.readFile(path, 'utf-8');
@@ -114,38 +120,38 @@ export const wrapHdlcFrame = (frame: Buffer) => {
     HDLC_LLC_SOURCE, // 9: LLC Source
     HDLC_LLC_QUALITY, // 10: LLC Quality
   ]);
-  
+
   const hdlcFooter = Buffer.from([
     0x00, // Checksum
     0x00, // Checksum
     HDLC_TELEGRAM_SOF_EOF,
   ]);
-  
+
   // Frame length is total length - 2 (SOF and EOF)
   const frameLength = frame.length + hdlcHeader.length + hdlcFooter.length - 2;
-  
+
   if (frameLength > 0x7ff) {
     throw new Error('Frame length is too long to fit in HDLC');
   }
-  
+
   // Leave segmentation bit to 0.
   hdlcHeader[1] = (HDLC_FORMAT_START << 4) | ((frameLength >> 8) & 0x07);
   hdlcHeader[2] = frameLength & 0xff;
-  
+
   // Don't include SOF in the checksum calculation
   const headerChecksum = calculateCrc16IbmSdlc(hdlcHeader.subarray(1, 6));
-  
+
   hdlcHeader.writeUint16LE(headerChecksum, 6);
-  
+
   const frameUntilFooter = Buffer.concat([hdlcHeader, frame]);
-  
+
   // Don't include SOF in the checksum calculation
   const footerChecksum = calculateCrc16IbmSdlc(frameUntilFooter.subarray(1));
-  
+
   hdlcFooter.writeUint16LE(footerChecksum, 0);
-  
+
   return Buffer.concat([frameUntilFooter, hdlcFooter]);
-}
+};
 
 export const encryptFrame = ({
   frame,

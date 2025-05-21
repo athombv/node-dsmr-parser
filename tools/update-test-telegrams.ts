@@ -23,7 +23,7 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
 // Parse all DSMR telegrams
 {
   const testCases = await getAllDSMRTestTelegramTestCases();
-  
+
   for (const file of testCases) {
     let input = await fs.readFile(`./tests/telegrams/dsmr/${file}.txt`, 'utf-8');
     input = input.replace(/\r?\n/g, '\r\n');
@@ -38,21 +38,21 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
 {
   const fileToEncrypt = 'dsmr-luxembourgh-spec-example';
   console.log(`Using ${fileToEncrypt} as test case for encrypted DSMR telegrams`);
-  
+
   let input = await fs.readFile(`./tests/telegrams/dsmr/${fileToEncrypt}.txt`, 'utf-8');
   input = input.replace(/\r?\n/g, '\r\n');
-  
+
   const encryptedAad = encryptFrame({
     frame: Buffer.from(input, 'utf-8'),
     key: TEST_DECRYPTION_KEY,
     aad: TEST_AAD,
   });
-  
+
   await writeHexFile(
     `./tests/telegrams/dsmr/encrypted/${fileToEncrypt}-with-aad.txt`,
     encryptedAad,
   );
-  
+
   const encryptedWithoutAad = encryptFrame({
     frame: Buffer.from(input, 'utf-8'),
     key: TEST_DECRYPTION_KEY,
@@ -115,7 +115,7 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
 {
   const dlmsFileToEncrypt = 'aidon-example-2';
   console.log(`Using ${dlmsFileToEncrypt} as test case for encrypted DLMS telegrams`);
-  
+
   const input = await readHexFile(`./tests/telegrams/dlms/${dlmsFileToEncrypt}.txt`);
 
   const hdlcHeader = decodeHdlcHeader(input);
@@ -123,21 +123,21 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
   const frame = input.subarray(0, hdlcHeader.frameLength + 2);
   const frameContent = frame.subarray(hdlcHeader.consumedBytes);
 
-  console.log(`frameContent`, frameContent.subarray(0, 10))
+  console.log(`frameContent`, frameContent.subarray(0, 10));
 
   const llc = decodeLlcHeader(frameContent);
   const content = frame.subarray(
     hdlcHeader.consumedBytes + llc.consumedBytes,
     frame.length - HDLC_FOOTER_LENGTH,
   );
-  
+
   const encryptedAad = encryptFrame({
     frame: content,
     // frame: Buffer.from('Hello, world! 12345678901234567890123456789'),
     key: TEST_DECRYPTION_KEY,
     aad: TEST_AAD,
   });
-  
+
   const encryptedWithoutAad = encryptFrame({
     frame: content,
     key: TEST_DECRYPTION_KEY,

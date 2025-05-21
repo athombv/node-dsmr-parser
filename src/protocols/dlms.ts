@@ -23,7 +23,6 @@
  * https://www.gurux.fi/GuruxDLMSTranslator
  */
 
-import { bufferToHexString } from '../../tests/test-utils.js';
 import { decryptDlmsFrame, ENCRYPTED_DLMS_TELEGRAM_SOF } from '../protocols/encryption.js';
 import { SmartMeterDecryptionRequired, SmartMeterUnknownMessageTypeError } from '../util/errors.js';
 import { DlmsDataTypes, getDlmsObjectCount } from './dlms-datatype.js';

@@ -77,7 +77,9 @@ describe('DSMR', async () => {
   }
 
   it('Gets m-bus data', async () => {
-    const { input } = await readDsmrTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
+    const { input } = await readDsmrTelegramFromFiles(
+      './tests/telegrams/dsmr/dsmr-5.0-spec-example',
+    );
 
     const parsed = parseDsmr({ telegram: input });
 

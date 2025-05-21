@@ -1,7 +1,7 @@
 import { decryptDlmsFrame } from './encryption.js';
 import { SmartMeterParserError } from '../util/errors.js';
 import { CosemLibrary } from './cosem.js';
-import { obisCodeToString, parseObisCodeFromString } from './obis-code.js';
+import { parseObisCodeFromString } from './obis-code.js';
 import { calculateCrc16Arc } from '../util/crc.js';
 import { BaseParserResult } from '../util/base-result.js';
 
@@ -62,13 +62,7 @@ export const DEFAULT_FRAME_ENCODING = 'binary';
  * @param enteredCrc
  * @returns
  */
-export const isDsmrCrcValid = ({
-  telegram,
-  crc,
-}: {
-  telegram: string;
-  crc: number;
-}) => {
+export const isDsmrCrcValid = ({ telegram, crc }: { telegram: string; crc: number }) => {
   // Strip the CRC from the telegram
   const telegramParts = telegram.split(`${CRLF}!`);
   const strippedTelegram = telegramParts[0] + CRLF + '!';

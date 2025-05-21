@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import { Readable } from 'stream';
 import {
   decodeHdlcFooter,
@@ -10,7 +8,11 @@ import {
   HDLC_TELEGRAM_SOF_EOF,
   HdlcParserResult,
 } from './../protocols/hdlc.js';
-import { SmartMeterError, SmartMeterTimeoutError, StartOfFrameNotFoundError } from '../util/errors.js';
+import {
+  SmartMeterError,
+  SmartMeterTimeoutError,
+  StartOfFrameNotFoundError,
+} from '../util/errors.js';
 import { decodeDLMSContent, decodeDlmsObis } from './../protocols/dlms.js';
 import { SmartMeterStreamCallback, SmartMeterStreamParser } from './stream.js';
 

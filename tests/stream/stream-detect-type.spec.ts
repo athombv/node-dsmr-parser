@@ -6,7 +6,9 @@ import { StreamDetectType } from '../../src/stream/stream-detect-type.js';
 
 describe('Stream: Detect Type', () => {
   it('Detects unencrypted DSMR telegrams', async () => {
-    const { input } = await readDsmrTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
+    const { input } = await readDsmrTelegramFromFiles(
+      './tests/telegrams/dsmr/dsmr-5.0-spec-example',
+    );
     const stream = new PassThrough();
     const callback = mock.fn();
 
@@ -25,7 +27,9 @@ describe('Stream: Detect Type', () => {
   });
 
   it('Detects unencrypted DSMR telegrams (chunks)', async () => {
-    const { input } = await readDsmrTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
+    const { input } = await readDsmrTelegramFromFiles(
+      './tests/telegrams/dsmr/dsmr-5.0-spec-example',
+    );
     const stream = new PassThrough();
     const callback = mock.fn();
 

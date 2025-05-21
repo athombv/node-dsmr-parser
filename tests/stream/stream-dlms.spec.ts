@@ -1,10 +1,25 @@
 import assert from 'node:assert';
 import { describe, it, mock } from 'node:test';
 
-import { chunkBuffer, readDlmsTelegramFromFiles, readHexFile, TEST_AAD, TEST_DECRYPTION_KEY } from '../test-utils.js';
+import {
+  chunkBuffer,
+  readDlmsTelegramFromFiles,
+  readHexFile,
+  TEST_AAD,
+  TEST_DECRYPTION_KEY,
+} from '../test-utils.js';
 import { PassThrough } from 'stream';
-import { DlmsStreamParser, SmartMeterDecryptionError, SmartMeterTimeoutError, StartOfFrameNotFoundError } from '../../src/index.js';
-import { HDLC_HEADER_LENGTH, HDLC_TELEGRAM_SOF_EOF, HdlcParserResult } from '../../src/protocols/hdlc.js';
+import {
+  DlmsStreamParser,
+  SmartMeterDecryptionError,
+  SmartMeterTimeoutError,
+  StartOfFrameNotFoundError,
+} from '../../src/index.js';
+import {
+  HDLC_HEADER_LENGTH,
+  HDLC_TELEGRAM_SOF_EOF,
+  HdlcParserResult,
+} from '../../src/protocols/hdlc.js';
 
 describe('Stream DLMS', () => {
   const testDlmsStreamParser = (input: Buffer) => {
@@ -12,7 +27,8 @@ describe('Stream DLMS', () => {
     const callback = mock.fn();
 
     const instance = new DlmsStreamParser({
-      stream, callback,
+      stream,
+      callback,
     });
 
     stream.write(input);
@@ -20,18 +36,21 @@ describe('Stream DLMS', () => {
     instance.destroy();
 
     return callback.mock.calls;
-  }
+  };
 
   describe('Unencrypted', () => {
     it('Parses a chunked unencrypted telegram', async () => {
-      const { input, output } = await readDlmsTelegramFromFiles('./tests/telegrams/dlms/aidon-example-2');
+      const { input, output } = await readDlmsTelegramFromFiles(
+        './tests/telegrams/dlms/aidon-example-2',
+      );
 
       const chunks = chunkBuffer(input, 10);
       const stream = new PassThrough();
       const callback = mock.fn();
 
       const instance = new DlmsStreamParser({
-        stream, callback,
+        stream,
+        callback,
       });
 
       for (const chunk of chunks) {
@@ -43,12 +62,19 @@ describe('Stream DLMS', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], JSON.parse(JSON.stringify(output)));
+      assert.deepStrictEqual(
+        callback.mock.calls[0].arguments[1],
+        JSON.parse(JSON.stringify(output)),
+      );
     });
 
     it('Parses two unencrypted telegrams', async () => {
-      const { input: input1, output: output1 } = await readDlmsTelegramFromFiles('./tests/telegrams/dlms/aidon-example-1');
-      const { input: input2, output: output2 } = await readDlmsTelegramFromFiles('./tests/telegrams/dlms/aidon-example-2');
+      const { input: input1, output: output1 } = await readDlmsTelegramFromFiles(
+        './tests/telegrams/dlms/aidon-example-1',
+      );
+      const { input: input2, output: output2 } = await readDlmsTelegramFromFiles(
+        './tests/telegrams/dlms/aidon-example-2',
+      );
 
       const calls = testDlmsStreamParser(Buffer.concat([input1, input2]));
 
@@ -81,7 +107,9 @@ describe('Stream DLMS', () => {
       const callback = mock.fn();
 
       const instance = new DlmsStreamParser({
-        stream, callback, fullFrameRequiredWithinMs,
+        stream,
+        callback,
+        fullFrameRequiredWithinMs,
       });
 
       const numberOfChunks = 5;
@@ -123,11 +151,13 @@ describe('Stream DLMS', () => {
       const callback = mock.fn();
 
       const instance = new DlmsStreamParser({
-        stream, callback, fullFrameRequiredWithinMs,
+        stream,
+        callback,
+        fullFrameRequiredWithinMs,
       });
 
       stream.write(Buffer.from([HDLC_TELEGRAM_SOF_EOF])); // Start by writing the start of the telegram
-      
+
       context.mock.timers.tick(fullFrameRequiredWithinMs);
 
       // Here it should have timed out and called the callback with an error.
@@ -143,7 +173,9 @@ describe('Stream DLMS', () => {
     it('Throws an error if key is invalid', async () => {
       const stream = new PassThrough();
       const callback = mock.fn();
-      const input = await readHexFile('./tests/telegrams/dlms/encrypted/aidon-example-2-with-aad.txt');
+      const input = await readHexFile(
+        './tests/telegrams/dlms/encrypted/aidon-example-2-with-aad.txt',
+      );
 
       const instance = new DlmsStreamParser({
         stream,
@@ -165,7 +197,9 @@ describe('Stream DLMS', () => {
     it('Parses when AAD is invalid', async () => {
       const stream = new PassThrough();
       const callback = mock.fn();
-      const input = await readHexFile('./tests/telegrams/dlms/encrypted/aidon-example-2-with-aad.txt');
+      const input = await readHexFile(
+        './tests/telegrams/dlms/encrypted/aidon-example-2-with-aad.txt',
+      );
 
       const instance = new DlmsStreamParser({
         stream,
@@ -190,7 +224,9 @@ describe('Stream DLMS', () => {
     it('Parses when AAD is missing', async () => {
       const stream = new PassThrough();
       const callback = mock.fn();
-      const input = await readHexFile('./tests/telegrams/dlms/encrypted/aidon-example-2-with-aad.txt');
+      const input = await readHexFile(
+        './tests/telegrams/dlms/encrypted/aidon-example-2-with-aad.txt',
+      );
 
       const instance = new DlmsStreamParser({
         stream,

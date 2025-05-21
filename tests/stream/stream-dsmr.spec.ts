@@ -487,7 +487,9 @@ describe('DSMRStreamParser', () => {
     it('Throws an error if key is invalid', async () => {
       const stream = new PassThrough();
       const callback = mock.fn();
-      const { input } = await readDsmrTelegramFromFiles('./tests/telegrams/dsmr/dsmr-5.0-spec-example');
+      const { input } = await readDsmrTelegramFromFiles(
+        './tests/telegrams/dsmr/dsmr-5.0-spec-example',
+      );
       const encrypted = encryptFrame({ frame: input, key: TEST_DECRYPTION_KEY, aad: TEST_AAD });
 
       const instance = new EncryptedDSMRStreamParser({
