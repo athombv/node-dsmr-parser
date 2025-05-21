@@ -6,7 +6,6 @@
  */
 import fs from 'fs/promises';
 import {
-  bufferToHexString,
   encryptFrame,
   getAllDLMSTestTelegramTestCases,
   getAllDSMRTestTelegramTestCases,

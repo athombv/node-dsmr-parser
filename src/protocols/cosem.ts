@@ -125,7 +125,7 @@ export const CosemLibrary = new CosemLibraryInternal()
   .addStringParser('0-0:1.0.0', ({ valueString, result }) => {
     result.metadata.timestamp = valueString; // TODO: Parse to date object
   })
-  .addStringParser('*-*:96.1.1', ({ valueString, result }) => {
+  .addStringParser('0-0:96.1.1', ({ valueString, result }) => {
     result.metadata.equipmentId = valueString;
   })
   .addNumberParser('1-*:1.8.*', ({ valueNumber, unit, obisCode, result }) => {
@@ -215,7 +215,7 @@ export const CosemLibrary = new CosemLibraryInternal()
     result.metadata.events.voltageSwells = result.metadata.events.voltageSwells ?? {};
     result.metadata.events.voltageSwells.l3 = valueNumber;
   })
-  .addNumberParser('0-0:96.13.0', ({ valueString, result }) => {
+  .addStringParser('0-0:96.13.0', ({ valueString, result }) => {
     result.metadata.textMessage = valueString;
   })
   .addNumberParser('0-0:96.13.1', ({ valueNumber, result }) => {

@@ -1,0 +1,9 @@
+[
+  {
+    "error": {
+      "message": "Encrypted frame detected",
+      "name": "DecryptionRequired",
+      "stack": "DecryptionRequired: Encrypted frame detected\n    at decodeDLMSContent (/Users/niels/projects/energy-dongle/node-dsmr-parser/src/protocols/dlms.ts:58:13)\n    at DlmsStreamParser.onData (/Users/niels/projects/energy-dongle/node-dsmr-parser/src/stream/stream-dlms.ts:124:27)\n    at PassThrough.emit (node:events:517:28)\n    at addChunk (node:internal/streams/readable:368:12)\n    at readableAddChunk (node:internal/streams/readable:341:9)\n    at Readable.push (node:internal/streams/readable:278:10)\n    at node:internal/streams/transform:182:12\n    at PassThrough._transform (node:internal/streams/passthrough:46:3)\n    at Transform._write (node:internal/streams/transform:175:8)\n    at writeOrBuffer (node:internal/streams/writable:392:12)"
+    }
+  }
+]

@@ -1,7 +1,7 @@
 import { decryptDlmsFrame } from './encryption.js';
 import { SmartMeterParserError } from '../util/errors.js';
 import { CosemLibrary } from './cosem.js';
-import { parseObisCodeFromString } from './obis-code.js';
+import { obisCodeToString, parseObisCodeFromString } from './obis-code.js';
 import { calculateCrc16Arc } from '../util/crc.js';
 import { BaseParserResult } from '../util/base-result.js';
 
@@ -44,7 +44,7 @@ export type DsmrParserResult = BaseParserResult & {
 /** Parses a string like "(1234.56*unit)", "(1234.56)", "(1234)" or "()". */
 const NumberTypeRegex = /^\(([\d.]+)?(\*\w+)?\)/;
 /** Parses a string like "(string)". */
-const StringTypeRegex = /^\(([^)]+)?\)/;
+const StringTypeRegex = /^\(([^)]*)?\)/;
 
 export const DSMR_SOF = 0x2f; // '/'
 export const CR = 0x0d; // '\r'
@@ -70,8 +70,8 @@ export const isDsmrCrcValid = ({
   crc: number;
 }) => {
   // Strip the CRC from the telegram
-  const telegramParts = telegram.split(CRLF);
-  const strippedTelegram = telegramParts[0] + CRLF;
+  const telegramParts = telegram.split(`${CRLF}!`);
+  const strippedTelegram = telegramParts[0] + CRLF + '!';
 
   const calculatedCrc = calculateCrc16Arc(Buffer.from(strippedTelegram, DEFAULT_FRAME_ENCODING));
 
@@ -134,10 +134,10 @@ const decodeDsmrCosemLine = ({
 
       const valueString = regexResult[1] ?? '';
       const unit = regexResult[2] ? regexResult[2].slice(1) : null;
-      const valueNumber = parseFloat(valueString);
+      let valueNumber = parseFloat(valueString);
 
       if (isNaN(valueNumber)) {
-        return false;
+        valueNumber = 0;
       }
 
       parser.callback({
