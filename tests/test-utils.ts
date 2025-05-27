@@ -6,10 +6,7 @@ import {
   ENCRYPTED_DLMS_SYSTEM_TITLE_LEN,
   ENCRYPTED_DLMS_TELEGRAM_SOF,
 } from '../src/protocols/encryption.js';
-import {
-  HDLC_TELEGRAM_SOF_EOF,
-  HDLC_FORMAT_START,
-} from '../src/protocols/hdlc.js';
+import { HDLC_TELEGRAM_SOF_EOF, HDLC_FORMAT_START } from '../src/protocols/hdlc.js';
 import { calculateCrc16IbmSdlc } from '../src/util/crc.js';
 
 export const TEST_DECRYPTION_KEY = Buffer.from('0123456789abcdef01234567890abcdef', 'hex');

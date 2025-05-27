@@ -63,3 +63,13 @@ export class SmartMeterUnknownMessageTypeError extends SmartMeterError {
     this.name = 'UnknownMessageTypeError';
   }
 }
+
+export const toSmartMeterError = (error: unknown) => {
+  if (error instanceof SmartMeterError) {
+    return error;
+  } else if (error instanceof Error) {
+    return new SmartMeterError(error.message, { cause: error });
+  } else {
+    return new SmartMeterError(`Unknown error: ${String(error)}`);
+  }
+};

@@ -4,6 +4,7 @@ import {
   SmartMeterError,
   StartOfFrameNotFoundError,
   SmartMeterTimeoutError,
+  toSmartMeterError,
 } from '../util/errors.js';
 import { SmartMeterStreamParser } from './stream.js';
 
@@ -42,7 +43,7 @@ export class UnencryptedDSMRStreamParser implements SmartMeterStreamParser {
       if (sofIndex === -1) {
         const error = new StartOfFrameNotFoundError();
         error.withRawTelegram(this.telegram);
-        this.options.callback(error, undefined);
+        this.options.callback(error);
         this.telegram = Buffer.alloc(0);
         return;
       }
@@ -97,18 +98,20 @@ export class UnencryptedDSMRStreamParser implements SmartMeterStreamParser {
     clearTimeout(this.fullFrameRequiredTimeout);
 
     try {
+      const telegram = this.telegram.subarray(0, frameLength);
       const result = parseDsmr({
-        telegram: this.telegram.subarray(0, frameLength),
+        telegram,
       });
 
-      this.options.callback(null, result);
+      this.options.callback(null, result, telegram);
     } catch (err) {
-      const error = overrideError ?? err;
+      const error = overrideError ?? toSmartMeterError(err);
+
       if (error instanceof SmartMeterError) {
         error.withRawTelegram(this.telegram);
       }
 
-      this.options.callback(error, undefined);
+      this.options.callback(error);
     }
 
     const remainingData = this.telegram.subarray(frameLength, this.telegram.length);

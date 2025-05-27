@@ -13,4 +13,5 @@ export type SmartMeterStreamParser = {
 
 export type SmartMeterStreamCallback<
   TResult extends SmartMeterParserResult = SmartMeterParserResult,
-> = (error: unknown, result?: TResult) => void;
+> = ((error: null, result: TResult, rawData: Buffer) => void) &
+  ((error: Error, result?: undefined, rawData?: undefined) => void);

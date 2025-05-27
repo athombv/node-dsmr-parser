@@ -12,6 +12,7 @@ import {
   SmartMeterError,
   SmartMeterTimeoutError,
   StartOfFrameNotFoundError,
+  toSmartMeterError,
 } from '../util/errors.js';
 import { decodeDLMSContent, decodeDlmsObis } from './../protocols/dlms.js';
 import { SmartMeterStreamCallback, SmartMeterStreamParser } from './stream.js';
@@ -41,6 +42,7 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
   private header: ReturnType<typeof decodeHdlcHeader> | undefined = undefined;
   private headers: ReturnType<typeof decodeHdlcHeader>[] = [];
   private footers: ReturnType<typeof decodeHdlcFooter>[] = [];
+  private telegrams: Buffer[] = [];
 
   private readonly boundOnData = this.onData.bind(this);
   private readonly boundOnFullFrameRequiredTimeout = this.onFullFrameRequiredTimeout.bind(this);
@@ -59,7 +61,7 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
         const error = new StartOfFrameNotFoundError();
         error.withRawTelegram(data);
 
-        this.options.callback(error, undefined);
+        this.options.callback(error);
         return;
       }
 
@@ -81,14 +83,16 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
       try {
         this.header = decodeHdlcHeader(this.telegram);
         this.headers.push(this.header);
-      } catch (error) {
+      } catch (rawError) {
         this.clear();
+
+        const error = toSmartMeterError(rawError);
 
         if (error instanceof SmartMeterError) {
           error.withRawTelegram(this.telegram);
         }
 
-        this.options.callback(error, undefined);
+        this.options.callback(error);
 
         // TODO: This seems weird, I've just cleared the buffer so this.telegram should be empty...
         const remainingData = this.telegram.subarray(1, this.telegram.length);
@@ -107,7 +111,7 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
 
     // Wait for more data to decode the header
     if (!this.header) return;
-    
+
     // +2 bytes for the sof and eof which are not included in the frame length field in the header
     const totalLength = this.header.frameLength + 2;
 
@@ -120,8 +124,14 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
     const footer = decodeHdlcFooter(fullHdlcFrame);
     this.footers.push(footer);
 
-    const frameContent = this.telegram.subarray(this.header.consumedBytes, totalLength - HDLC_FOOTER_LENGTH);
+    const frameContent = this.telegram.subarray(
+      this.header.consumedBytes,
+      totalLength - HDLC_FOOTER_LENGTH,
+    );
     this.cachedContent = Buffer.concat([this.cachedContent, frameContent]);
+
+    const telegram = this.telegram.subarray(0, totalLength);
+    this.telegrams.push(telegram);
 
     // If the frame is segmented, the content is split over multiple HDLC frames.
     if (this.header.segmentation) {
@@ -179,7 +189,7 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
               crc: {
                 valid: footer.crcValid,
                 value: footer.crc,
-              }
+              },
             };
           }),
           crc: {
@@ -208,13 +218,14 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
 
       decodeDlmsObis(dlmsContent, result);
 
-      this.options.callback(null, result);
-    } catch (error) {
+      this.options.callback(null, result, Buffer.concat(this.telegrams));
+    } catch (rawError) {
+      const error = toSmartMeterError(rawError);
       if (error instanceof SmartMeterError) {
         error.withRawTelegram(this.telegram);
       }
 
-      this.options.callback(error, undefined);
+      this.options.callback(error);
     }
 
     const remainingData = this.telegram.subarray(totalLength, this.telegram.length);
@@ -229,7 +240,7 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
   private onFullFrameRequiredTimeout() {
     const error = new SmartMeterTimeoutError();
     error.withRawTelegram(this.telegram);
-    this.options.callback(error, undefined);
+    this.options.callback(error);
 
     // Reset the entire state here, as the full frame was not received.
     this.clear();
@@ -247,11 +258,12 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
     this.header = undefined;
     this.headers = [];
     this.footers = [];
+    this.telegrams = [];
     this.telegram = Buffer.alloc(0);
     this.cachedContent = Buffer.alloc(0);
   }
 
   currentSize(): number {
-    return this.telegram.length + this.cachedContent.length;
+    return this.telegram.length + this.telegrams.reduce((acc, t) => acc + t.length, 0);
   }
 }

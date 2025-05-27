@@ -27,7 +27,6 @@ export type DsmrParserOptions =
 
 export type DsmrParserResult = BaseParserResult & {
   dsmr: {
-    raw: string;
     header: {
       identifier: string;
       xxx: string;
@@ -196,7 +195,6 @@ export const parseDsmr = (options: DsmrParserOptions): DsmrParserResult => {
 
   const result: DsmrParserResult = {
     dsmr: {
-      raw: telegram,
       header: {
         identifier: '',
         xxx: '',

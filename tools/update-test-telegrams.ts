@@ -80,19 +80,13 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
       stream: passthrough,
       callback: (error, result) => {
         if (error) {
-          if (error instanceof Error) {
-            results.push({
-              error: {
-                message: error.message,
-                name: error.name,
-                stack: error.stack,
-              },
-            });
-          } else {
-            results.push({
-              error,
-            });
-          }
+          results.push({
+            error: {
+              message: error.message,
+              name: error.name,
+              stack: error.stack,
+            },
+          });
         } else if (result) {
           results.push(result);
         }
@@ -141,11 +135,7 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
     key: TEST_DECRYPTION_KEY,
   });
 
-  const llcBuffer = Buffer.from([
-    llc.destination,
-    llc.source,
-    llc.quality
-  ]);
+  const llcBuffer = Buffer.from([llc.destination, llc.source, llc.quality]);
 
   const frameWithAad = wrapHdlcFrame(Buffer.concat([llcBuffer, encryptedAad]));
   const frameWithoutAad = wrapHdlcFrame(Buffer.concat([llcBuffer, encryptedWithoutAad]));

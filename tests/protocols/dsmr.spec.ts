@@ -21,9 +21,6 @@ describe('DSMR', async () => {
 
       const parsed = parseDsmr({ telegram: input });
 
-      // @ts-expect-error output is not typed
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      assert.equal(parsed.dsmr.raw, expectedOutput.dsmr.raw);
       assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expectedOutput);
     });
 

@@ -100,17 +100,25 @@ console.log(dlmsDataTypeToList(dlmsContent.data, '  '));
 
 const result: HdlcParserResult = {
   hdlc: {
-    raw: '',
-    header: {
-      destinationAddress: 0,
-      sourceAddress: 0,
-      crc: {
-        value: 0,
-        valid: false,
+    headers: [
+      {
+        destinationAddress: 0,
+        sourceAddress: 0,
+        crc: {
+          value: 0,
+          valid: false,
+        },
       },
-    },
+    ],
+    footers: [
+      {
+        crc: {
+          value: 0,
+          valid: false,
+        },
+      },
+    ],
     crc: {
-      value: 0,
       valid: false,
     },
   },

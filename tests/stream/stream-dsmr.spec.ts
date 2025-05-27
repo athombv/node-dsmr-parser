@@ -64,6 +64,7 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
     });
 
     it('Parses two unencrypted telegrams', async () => {
@@ -87,8 +88,10 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callback.mock.calls.length, 2);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input1));
       assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output2);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[2], Buffer.from(input2));
     });
 
     it('Throws error when telegram is invalid', async () => {
@@ -109,6 +112,7 @@ describe('DSMRStreamParser', () => {
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof StartOfFrameNotFoundError);
       assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
     });
 
     it("Doesn't throw error after receiving null character", async () => {
@@ -127,12 +131,8 @@ describe('DSMRStreamParser', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
-
-      // Need to manually add \0 to the output
-      // @ts-expect-error output is not typed
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      output.dsmr.raw += '\0';
       assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input + '\0'));
     });
 
     it('Throws an error if a full frame is not received in time', async (context) => {
@@ -164,6 +164,8 @@ describe('DSMRStreamParser', () => {
       // Here it should have timed out and called the callback with an error.
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof SmartMeterTimeoutError);
+      assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
       assert.equal(instance.currentSize(), 0);
 
       // Writing more data should trigger the sof error again.
@@ -173,6 +175,8 @@ describe('DSMRStreamParser', () => {
 
       assert.equal(callback.mock.calls.length, 2);
       assert.ok(callback.mock.calls[1].arguments[0] instanceof StartOfFrameNotFoundError);
+      assert.equal(callback.mock.calls[1].arguments[1], undefined);
+      assert.equal(callback.mock.calls[1].arguments[2], undefined);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();
@@ -199,6 +203,8 @@ describe('DSMRStreamParser', () => {
       // Here it should have timed out and called the callback with an error.
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof SmartMeterTimeoutError);
+      assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();
@@ -230,6 +236,7 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
     });
 
     it('Immediately parses when CRC is missing and a 2nd telegram is received', async (context) => {
@@ -254,6 +261,7 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
 
       context.mock.timers.tick(1000);
 
@@ -263,6 +271,7 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callback.mock.calls.length, 2);
       assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[2], Buffer.from(input));
     });
 
     it('Immediately parses when CRC is missing and a three telegrams are received', async (context) => {
@@ -288,8 +297,10 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callback.mock.calls.length, 2);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
       assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[2], Buffer.from(input));
 
       context.mock.timers.tick(1000);
 
@@ -299,6 +310,7 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callback.mock.calls.length, 3);
       assert.deepStrictEqual(callback.mock.calls[2].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[2].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[2].arguments[2], Buffer.from(input));
     });
 
     it('Handles text messages', async (context) => {
@@ -324,6 +336,7 @@ describe('DSMRStreamParser', () => {
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
 
       stream.end();
       instance.destroy();
@@ -361,6 +374,7 @@ describe('DSMRStreamParser', () => {
         expected: output,
         aadValid: true,
       });
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], encrypted);
     });
 
     it('Parses two encrypted telegrams', async () => {
@@ -396,12 +410,14 @@ describe('DSMRStreamParser', () => {
         expected: output1,
         aadValid: true,
       });
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], encrypted1);
       assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
       assertDecryptedFrameValid({
         actual: callback.mock.calls[1].arguments[1],
         expected: output2,
         aadValid: true,
       });
+      assert.deepStrictEqual(callback.mock.calls[1].arguments[2], encrypted2);
     });
 
     it('Throws error when telegram is invalid', async () => {
@@ -423,6 +439,7 @@ describe('DSMRStreamParser', () => {
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof StartOfFrameNotFoundError);
       assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
     });
 
     it('Throws an error if a full frame is not received in time', async (context) => {
@@ -451,6 +468,8 @@ describe('DSMRStreamParser', () => {
       // Here it should have timed out and called the callback with an error.
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof SmartMeterTimeoutError);
+      assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();
@@ -479,6 +498,8 @@ describe('DSMRStreamParser', () => {
       // Here it should have timed out and called the callback with an error.
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof SmartMeterTimeoutError);
+      assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();
@@ -507,6 +528,7 @@ describe('DSMRStreamParser', () => {
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof SmartMeterDecryptionError);
       assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
     });
 
     it('Parses when AAD is invalid', async () => {
@@ -537,6 +559,7 @@ describe('DSMRStreamParser', () => {
         expected: output,
         aadValid: false,
       });
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], encrypted);
     });
 
     it('Parses when AAD is missing', async () => {
@@ -567,6 +590,7 @@ describe('DSMRStreamParser', () => {
         expected: output,
         aadValid: false,
       });
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], encrypted);
     });
   });
 });

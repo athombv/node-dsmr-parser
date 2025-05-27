@@ -3,6 +3,7 @@ import { describe, it, mock } from 'node:test';
 
 import {
   chunkBuffer,
+  getAllDLMSTestTelegramTestCases,
   readDlmsTelegramFromFiles,
   readHexFile,
   TEST_AAD,
@@ -21,7 +22,7 @@ import {
   HdlcParserResult,
 } from '../../src/protocols/hdlc.js';
 
-describe('Stream DLMS', () => {
+describe('Stream DLMS', async () => {
   const testDlmsStreamParser = (input: Buffer) => {
     const stream = new PassThrough();
     const callback = mock.fn();
@@ -37,6 +38,21 @@ describe('Stream DLMS', () => {
 
     return callback.mock.calls;
   };
+
+  for (const testCase of await getAllDLMSTestTelegramTestCases()) {
+    it(`Parses ${testCase}`, async () => {
+      const { input, output: expectedOutput } = await readDlmsTelegramFromFiles(
+        `./tests/telegrams/dlms/${testCase}`,
+      );
+
+      const calls = testDlmsStreamParser(input);
+
+      assert.deepStrictEqual(calls.length, 1);
+      assert.deepStrictEqual(calls[0].arguments[0], null);
+      assert.deepStrictEqual(calls[0].arguments[1], expectedOutput);
+      assert.deepStrictEqual(calls[0].arguments[2], input);
+    });
+  }
 
   describe('Unencrypted', () => {
     it('Parses a chunked unencrypted telegram', async () => {
@@ -66,6 +82,39 @@ describe('Stream DLMS', () => {
         callback.mock.calls[0].arguments[1],
         JSON.parse(JSON.stringify(output)),
       );
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], input);
+    });
+
+    // This case is different from the previous one, as the telegram is segmented into
+    // multiple HDLC frames.
+    it('Parses a chunked & segmented unencrypted telegram', async () => {
+      const { input, output } = await readDlmsTelegramFromFiles(
+        './tests/telegrams/dlms/aidon-example-2-segmented',
+      );
+
+      const chunks = chunkBuffer(input, 10);
+      const stream = new PassThrough();
+      const callback = mock.fn();
+
+      const instance = new DlmsStreamParser({
+        stream,
+        callback,
+      });
+
+      for (const chunk of chunks) {
+        stream.write(chunk);
+      }
+
+      stream.end();
+      instance.destroy();
+
+      assert.deepStrictEqual(callback.mock.calls.length, 1);
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
+      assert.deepStrictEqual(
+        callback.mock.calls[0].arguments[1],
+        JSON.parse(JSON.stringify(output)),
+      );
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], input);
     });
 
     it('Parses two unencrypted telegrams', async () => {
@@ -81,8 +130,10 @@ describe('Stream DLMS', () => {
       assert.deepStrictEqual(calls.length, 2);
       assert.deepStrictEqual(calls[0].arguments[0], null);
       assert.deepStrictEqual(calls[0].arguments[1], output1);
+      assert.deepStrictEqual(calls[0].arguments[2], input1);
       assert.deepStrictEqual(calls[1].arguments[0], null);
       assert.deepStrictEqual(calls[1].arguments[1], output2);
+      assert.deepStrictEqual(calls[1].arguments[2], input2);
     });
 
     it('Throws error when telegram is invalid', async () => {
@@ -94,6 +145,7 @@ describe('Stream DLMS', () => {
       assert.equal(calls.length, 1);
       assert.ok(calls[0].arguments[0] instanceof StartOfFrameNotFoundError);
       assert.equal(calls[0].arguments[1], undefined);
+      assert.equal(calls[0].arguments[2], undefined);
     });
 
     it('Throws error if a full frame is not received in time', async (context) => {
@@ -128,6 +180,7 @@ describe('Stream DLMS', () => {
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof SmartMeterTimeoutError);
       assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
 
       // Writing invalid data should now throw an error.
       stream.write('invalid data');
@@ -137,6 +190,8 @@ describe('Stream DLMS', () => {
 
       assert.equal(callback.mock.calls.length, 2);
       assert.ok(callback.mock.calls[1].arguments[0] instanceof StartOfFrameNotFoundError);
+      assert.equal(callback.mock.calls[1].arguments[1], undefined);
+      assert.equal(callback.mock.calls[1].arguments[2], undefined);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();
@@ -163,6 +218,8 @@ describe('Stream DLMS', () => {
       // Here it should have timed out and called the callback with an error.
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof SmartMeterTimeoutError);
+      assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
       assert.equal(instance.currentSize(), 0);
 
       instance.destroy();
@@ -192,6 +249,7 @@ describe('Stream DLMS', () => {
       assert.equal(callback.mock.calls.length, 1);
       assert.ok(callback.mock.calls[0].arguments[0] instanceof SmartMeterDecryptionError);
       assert.equal(callback.mock.calls[0].arguments[1], undefined);
+      assert.equal(callback.mock.calls[0].arguments[2], undefined);
     });
 
     it('Parses when AAD is invalid', async () => {
@@ -219,6 +277,8 @@ describe('Stream DLMS', () => {
       const result = callback.mock.calls[0].arguments[1] as HdlcParserResult;
 
       assert.equal(result.additionalAuthenticatedDataValid, false);
+
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], input);
     });
 
     it('Parses when AAD is missing', async () => {
@@ -246,6 +306,8 @@ describe('Stream DLMS', () => {
 
       const result = callback.mock.calls[0].arguments[1] as HdlcParserResult;
       assert.equal(result.additionalAuthenticatedDataValid, false);
+
+      assert.deepStrictEqual(callback.mock.calls[0].arguments[2], input);
     });
   });
 });

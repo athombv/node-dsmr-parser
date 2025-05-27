@@ -152,7 +152,9 @@ describe('Stream: Detect Type', () => {
   });
 
   it('Detects encrypted DLMS telegrams', async () => {
-    const input = await readHexFile('./tests/telegrams/dlms/aidon-example-2-encrypted.txt');
+    const input = await readHexFile(
+      './tests/telegrams/dlms/encrypted/aidon-example-2-with-aad.txt',
+    );
     const stream = new PassThrough();
     const callback = mock.fn();
 
@@ -171,7 +173,9 @@ describe('Stream: Detect Type', () => {
   });
 
   it('Detects encrypted DLMS telegrams (chunks)', async () => {
-    const input = await readHexFile('./tests/telegrams/dlms/aidon-example-2-encrypted.txt');
+    const input = await readHexFile(
+      './tests/telegrams/dlms/encrypted/aidon-example-2-with-aad.txt',
+    );
     const stream = new PassThrough();
     const callback = mock.fn();
 

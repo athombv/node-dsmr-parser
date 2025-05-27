@@ -12,6 +12,7 @@ import {
   SmartMeterError,
   StartOfFrameNotFoundError,
   SmartMeterTimeoutError,
+  toSmartMeterError,
 } from '../util/errors.js';
 import { SmartMeterStreamCallback, SmartMeterStreamParser } from './stream.js';
 
@@ -55,7 +56,7 @@ export class EncryptedDSMRStreamParser implements SmartMeterStreamParser {
         const error = new StartOfFrameNotFoundError();
         error.withRawTelegram(data);
 
-        this.options.callback(error, undefined);
+        this.options.callback(error);
         return;
       }
 
@@ -72,14 +73,12 @@ export class EncryptedDSMRStreamParser implements SmartMeterStreamParser {
     if (this.header === undefined && this.telegram.length >= ENCRYPTED_DLMS_HEADER_LEN) {
       try {
         this.header = decodeEncryptionHeader(this.telegram);
-      } catch (error) {
+      } catch (err) {
         this.clear();
+        const error = toSmartMeterError(err);
+        error.withRawTelegram(this.telegram);
 
-        if (error instanceof SmartMeterError) {
-          error.withRawTelegram(this.telegram);
-        }
-
-        this.options.callback(error, undefined);
+        this.options.callback(error);
         return;
       }
     }
@@ -98,7 +97,8 @@ export class EncryptedDSMRStreamParser implements SmartMeterStreamParser {
     let decryptError: Error | undefined;
 
     try {
-      const encryptedContent = this.telegram.subarray(
+      const telegram = this.telegram.subarray(0, totalLength);
+      const encryptedContent = telegram.subarray(
         ENCRYPTED_DLMS_HEADER_LEN,
         ENCRYPTED_DLMS_HEADER_LEN + this.header.contentLength,
       );
@@ -120,17 +120,17 @@ export class EncryptedDSMRStreamParser implements SmartMeterStreamParser {
 
       result.additionalAuthenticatedDataValid = decryptError === undefined;
 
-      this.options.callback(null, result);
+      this.options.callback(null, result, telegram);
     } catch (error) {
       // If we had a decryption error that is the cause of the error.
       // So that should be returned to the listener.
-      const realError = decryptError ?? error;
+      const realError = decryptError ?? toSmartMeterError(error);
 
       if (realError instanceof SmartMeterError) {
         realError.withRawTelegram(this.telegram);
       }
 
-      this.options.callback(realError, undefined);
+      this.options.callback(realError);
     }
 
     const remainingData = this.telegram.subarray(totalLength, this.telegram.length);
@@ -148,7 +148,7 @@ export class EncryptedDSMRStreamParser implements SmartMeterStreamParser {
   private onFullFrameRequiredTimeout() {
     const error = new SmartMeterTimeoutError();
     error.withRawTelegram(this.telegram);
-    this.options.callback(error, undefined);
+    this.options.callback(error);
 
     // Reset the entire state here, as the full frame was not received.
     this.clear();
