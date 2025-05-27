@@ -85,12 +85,15 @@ const decodeDsmrCosemLine = ({
   const { obisCode, consumedChars } = parseObisCodeFromString(line);
 
   if (obisCode === null) {
+    result.dsmr.unknownLines = result.dsmr.unknownLines ?? [];
+    result.dsmr.unknownLines.push(line);
     return false;
   }
 
   const parser = CosemLibrary.getParser(obisCode);
 
   if (!parser) {
+    result.cosem.unknownObjects.push(line);
     return false;
   }
 
@@ -101,8 +104,10 @@ const decodeDsmrCosemLine = ({
       const regexResult = StringTypeRegex.exec(lineWithoutObisCode);
 
       if (!regexResult) {
+        result.cosem.unknownObjects.push(line);
         return false;
       }
+      result.cosem.knownObjects.push(line);
 
       const valueString = regexResult[1] ?? '';
 
@@ -122,8 +127,10 @@ const decodeDsmrCosemLine = ({
       const regexResult = NumberTypeRegex.exec(lineWithoutObisCode);
 
       if (!regexResult) {
+        result.cosem.unknownObjects.push(line);
         return false;
       }
+      result.cosem.knownObjects.push(line);
 
       const valueString = regexResult[1] ?? '';
       const unit = regexResult[2] ? regexResult[2].slice(1) : null;
@@ -149,6 +156,7 @@ const decodeDsmrCosemLine = ({
       return true;
     }
     case 'raw': {
+      result.cosem.knownObjects.push(line);
       parser.callback({
         result,
         obisCode,
@@ -239,10 +247,7 @@ export const parseDsmr = (options: DsmrParserOptions): DsmrParserResult => {
         lineNumber,
       });
 
-      if (!isLineParsed) {
-        result.dsmr.unknownLines = result.dsmr.unknownLines ?? [];
-        result.dsmr.unknownLines.push(line);
-      } else {
+      if (isLineParsed) {
         objectsParsed++;
       }
     }
