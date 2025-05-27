@@ -74,9 +74,9 @@ export class EncryptedDSMRStreamParser implements SmartMeterStreamParser {
       try {
         this.header = decodeEncryptionHeader(this.telegram);
       } catch (err) {
-        this.clear();
         const error = toSmartMeterError(err);
         error.withRawTelegram(this.telegram);
+        this.clear();
 
         this.options.callback(error);
         return;

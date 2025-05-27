@@ -84,8 +84,6 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
         this.header = decodeHdlcHeader(this.telegram);
         this.headers.push(this.header);
       } catch (rawError) {
-        this.clear();
-
         const error = toSmartMeterError(rawError);
 
         if (error instanceof SmartMeterError) {
@@ -94,17 +92,7 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
 
         this.options.callback(error);
 
-        // TODO: This seems weird, I've just cleared the buffer so this.telegram should be empty...
-        const remainingData = this.telegram.subarray(1, this.telegram.length);
-        this.hasStartOfFrame = false;
-        this.header = undefined;
-        this.telegram = Buffer.alloc(0);
-        this.cachedContent = Buffer.alloc(0);
-
-        // There might be more data in the buffer for the next telegram.
-        if (remainingData.length > 0) {
-          this.onData(remainingData);
-        }
+        this.clear();
         return;
       }
     }

@@ -127,6 +127,27 @@ class DlmsDataTypesInternal {
   }
 }
 
+const parseStructureOrArray = (index: number, buffer: Buffer) => {
+  const { objectCount, newIndex } = getDlmsObjectCount(buffer, index);
+  index = newIndex;
+
+  const resultValue: DlmsDataTypes['array'] = [];
+
+  for (let i = 0; i < objectCount; i++) {
+    const { value, index: newIndex, type } = DlmsDataTypes.parse(buffer, index);
+    index = newIndex;
+    resultValue.push({
+      value,
+      type,
+    });
+  }
+
+  return {
+    index,
+    value: resultValue,
+  };
+};
+
 // TODO: We need to add all data types, because otherwise
 // we will get an error when we try to parse a data type we don't know.
 /**
@@ -137,47 +158,8 @@ class DlmsDataTypesInternal {
  * - The value (length is either determined by the tag and length)
  */
 export const DlmsDataTypes = new DlmsDataTypesInternal()
-  .addDataType('array', 0x01, (index, buffer) => {
-    const { objectCount, newIndex } = getDlmsObjectCount(buffer, index);
-    index = newIndex;
-
-    const resultValue: DlmsDataTypes['array'] = [];
-
-    for (let i = 0; i < objectCount; i++) {
-      const { value, index: newIndex, type } = DlmsDataTypes.parse(buffer, index);
-      index = newIndex;
-      resultValue.push({
-        value,
-        type,
-      });
-    }
-
-    return {
-      index,
-      value: resultValue,
-    };
-  })
-  .addDataType('structure', 0x02, (index, buffer) => {
-    // TODO: This is the same as array
-    const { objectCount, newIndex } = getDlmsObjectCount(buffer, index);
-    index = newIndex;
-
-    const resultValue: DlmsDataTypes['array'] = [];
-
-    for (let i = 0; i < objectCount; i++) {
-      const { value, index: newIndex, type } = DlmsDataTypes.parse(buffer, index);
-      index = newIndex;
-      resultValue.push({
-        value,
-        type,
-      });
-    }
-
-    return {
-      index,
-      value: resultValue,
-    };
-  })
+  .addDataType('array', 0x01, parseStructureOrArray)
+  .addDataType('structure', 0x02, parseStructureOrArray)
   .addDataType('octet_string', 0x09, (index, buffer) => {
     const { objectCount, newIndex } = getDlmsObjectCount(buffer, index);
     index = newIndex;

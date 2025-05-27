@@ -124,8 +124,6 @@ export const decodeHdlcHeader = (data: Buffer) => {
 
   const format = data.readUint8(index++);
   const formatType = (format >> 4) & 0b1111;
-  // TODO: Is this bit "Segmentation supported", or "This frame is segmented"?
-  // The control bit also has a final bit, maybe that is used to indicate the end of a segmented frame?
   const segmentation = (format & 0x08) !== 0;
 
   if (formatType !== HDLC_FORMAT_START) {
