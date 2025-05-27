@@ -62,7 +62,7 @@
     ]
   },
   "electricity": {
-    "powerReceivedTotal": 1122000,
+    "powerReceivedTotal": 1122,
     "powerReturnedTotal": 0,
     "current": {
       "l1": 0,

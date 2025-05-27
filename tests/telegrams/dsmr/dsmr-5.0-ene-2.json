@@ -49,7 +49,7 @@
       }
     },
     "currentTariff": 2,
-    "powerReceivedTotal": 0.134,
+    "powerReceivedTotal": 134,
     "powerReturnedTotal": 0,
     "voltage": {
       "l1": 229,

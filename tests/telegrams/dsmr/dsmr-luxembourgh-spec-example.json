@@ -65,7 +65,7 @@
       "received": 25653,
       "returned": 40
     },
-    "powerReceivedTotal": 0.005,
+    "powerReceivedTotal": 5,
     "powerReturnedTotal": 0,
     "voltage": {
       "l1": 233,

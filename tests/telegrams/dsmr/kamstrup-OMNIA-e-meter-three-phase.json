@@ -34,7 +34,7 @@
       "received": 123321,
       "returned": 456654
     },
-    "powerReceivedTotal": 2.424,
+    "powerReceivedTotal": 2424,
     "powerReturnedTotal": 0,
     "powerReceived": {
       "l1": 0.682,

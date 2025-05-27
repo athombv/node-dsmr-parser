@@ -164,14 +164,14 @@ export const CosemLibrary = new CosemLibraryInternal()
     result.electricity.currentTariff = valueNumber;
   })
   .addNumberParser('1-*:1.7.0', ({ valueNumber, unit, result }) => {
-    if (unit?.toLowerCase() === 'w') {
+    if (unit?.toLowerCase() === 'kw') {
       valueNumber *= 1000;
     }
 
     result.electricity.powerReceivedTotal = valueNumber;
   })
   .addNumberParser('1-*:2.7.0', ({ valueNumber, unit, result }) => {
-    if (unit?.toLowerCase() === 'w') {
+    if (unit?.toLowerCase() === 'kw') {
       valueNumber *= 1000;
     }
 
@@ -237,7 +237,7 @@ export const CosemLibrary = new CosemLibraryInternal()
     // The currents for DLMS (in BasicList/DescribedList) mode are in 10 mA to
     // give more precision without using floats.
     if (dlms?.useDefaultScalar) {
-      valueNumber = valueNumber / 100;
+      valueNumber /= 100;
     }
 
     result.electricity.current = result.electricity.current ?? {};
@@ -245,7 +245,7 @@ export const CosemLibrary = new CosemLibraryInternal()
   })
   .addNumberParser('1-*:51.7.0', ({ valueNumber, result, dlms }) => {
     if (dlms?.useDefaultScalar) {
-      valueNumber = valueNumber / 100;
+      valueNumber /= 100;
     }
 
     result.electricity.current = result.electricity.current ?? {};
@@ -253,7 +253,7 @@ export const CosemLibrary = new CosemLibraryInternal()
   })
   .addNumberParser('1-*:71.7.0', ({ valueNumber, result, dlms }) => {
     if (dlms?.useDefaultScalar) {
-      valueNumber = valueNumber / 100;
+      valueNumber /= 100;
     }
 
     result.electricity.current = result.electricity.current ?? {};
