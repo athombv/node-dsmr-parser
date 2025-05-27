@@ -123,8 +123,6 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
   const frame = input.subarray(0, hdlcHeader.frameLength + 2);
   const frameContent = frame.subarray(hdlcHeader.consumedBytes);
 
-  console.log(`frameContent`, frameContent.subarray(0, 10));
-
   const llc = decodeLlcHeader(frameContent);
   const content = frame.subarray(
     hdlcHeader.consumedBytes + llc.consumedBytes,
@@ -143,8 +141,14 @@ import { decodeHdlcHeader, decodeLlcHeader, HDLC_FOOTER_LENGTH } from '../src/pr
     key: TEST_DECRYPTION_KEY,
   });
 
-  const frameWithAad = wrapHdlcFrame(encryptedAad);
-  const frameWithoutAad = wrapHdlcFrame(encryptedWithoutAad);
+  const llcBuffer = Buffer.from([
+    llc.destination,
+    llc.source,
+    llc.quality
+  ]);
+
+  const frameWithAad = wrapHdlcFrame(Buffer.concat([llcBuffer, encryptedAad]));
+  const frameWithoutAad = wrapHdlcFrame(Buffer.concat([llcBuffer, encryptedWithoutAad]));
 
   await writeHexFile(
     `./tests/telegrams/dlms/encrypted/${dlmsFileToEncrypt}-with-aad.txt`,

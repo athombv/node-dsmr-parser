@@ -8,9 +8,6 @@ import {
 } from '../src/protocols/encryption.js';
 import {
   HDLC_TELEGRAM_SOF_EOF,
-  HDLC_LLC_DESTINATION,
-  HDLC_LLC_SOURCE,
-  HDLC_LLC_QUALITY,
   HDLC_FORMAT_START,
 } from '../src/protocols/hdlc.js';
 import { calculateCrc16IbmSdlc } from '../src/util/crc.js';
@@ -106,7 +103,7 @@ export const bufferToHexString = (buffer: Buffer) => {
   return hexString;
 };
 
-export const wrapHdlcFrame = (frame: Buffer) => {
+export const wrapHdlcFrame = (frame: Buffer, isSegmented = false) => {
   const hdlcHeader = Buffer.from([
     HDLC_TELEGRAM_SOF_EOF, // 0: SOF
     0x00, // 1: Format type + length
@@ -116,9 +113,6 @@ export const wrapHdlcFrame = (frame: Buffer) => {
     0x00, // 5: Control byte,
     0x00, // 6: Checksum
     0x00, // 7: Checksum,
-    HDLC_LLC_DESTINATION, // 8: LLC Destination
-    HDLC_LLC_SOURCE, // 9: LLC Source
-    HDLC_LLC_QUALITY, // 10: LLC Quality
   ]);
 
   const hdlcFooter = Buffer.from([
@@ -134,9 +128,12 @@ export const wrapHdlcFrame = (frame: Buffer) => {
     throw new Error('Frame length is too long to fit in HDLC');
   }
 
-  // Leave segmentation bit to 0.
   hdlcHeader[1] = (HDLC_FORMAT_START << 4) | ((frameLength >> 8) & 0x07);
   hdlcHeader[2] = frameLength & 0xff;
+
+  if (isSegmented) {
+    hdlcHeader[1] |= 0x08; // Set segmentation bit
+  }
 
   // Don't include SOF in the checksum calculation
   const headerChecksum = calculateCrc16IbmSdlc(hdlcHeader.subarray(1, 6));

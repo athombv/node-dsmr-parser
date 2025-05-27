@@ -57,17 +57,21 @@ import { SmartMeterError, SmartMeterUnknownMessageTypeError } from '../util/erro
 
 export type HdlcParserResult = BaseParserResult & {
   hdlc: {
-    raw: string;
-    header: {
+    headers: {
       destinationAddress: number;
       sourceAddress: number;
-      crc?: {
+      crc: {
         value: number;
         valid: boolean;
       };
-    };
-    crc?: {
-      value: number;
+    }[];
+    footers: {
+      crc: {
+        value: number;
+        valid: boolean;
+      };
+    }[];
+    crc: {
       valid: boolean;
     };
   };
@@ -190,7 +194,7 @@ export const decodeLlcHeader = (frameContent: Buffer) => {
 
 export const decodeHdlcFooter = (frame: Buffer) => {
   if (frame[frame.length - 1] !== HDLC_TELEGRAM_SOF_EOF) {
-    throw new SmartMeterError(`Invalid footer eof 0x${frame[frame.length].toString(16)}`);
+    throw new SmartMeterError(`Invalid footer eof 0x${frame[frame.length - 1].toString(16)}`);
   }
 
   const crc = frame.readUint16LE(frame.length - HDLC_FOOTER_LENGTH);

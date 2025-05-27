@@ -84,11 +84,9 @@ const callback: SmartMeterStreamCallback = (error, result) => {
   } else {
     let crcValid = true;
     if ('hdlc' in result) {
-      const msgCrcValid = result.hdlc.crc?.valid === false;
-      const hdrCrcValid = result.hdlc.header.crc?.valid === false;
-      crcValid = msgCrcValid && hdrCrcValid;
+      crcValid = result.hdlc.crc.valid !== false;
     } else if ('dsmr' in result) {
-      crcValid = result.dsmr.crc?.valid === false;
+      crcValid = result.dsmr.crc?.valid !== false;
     }
 
     if (!crcValid) {

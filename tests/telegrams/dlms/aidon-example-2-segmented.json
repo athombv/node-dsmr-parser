@@ -2,11 +2,27 @@
   "hdlc": {
     "headers": [
       {
-        "destinationAddress": 32,
-        "sourceAddress": 577,
+        "destinationAddress": 1,
+        "sourceAddress": 2,
         "crc": {
           "valid": true,
-          "value": 60293
+          "value": 33463
+        }
+      },
+      {
+        "destinationAddress": 1,
+        "sourceAddress": 2,
+        "crc": {
+          "valid": true,
+          "value": 33463
+        }
+      },
+      {
+        "destinationAddress": 1,
+        "sourceAddress": 2,
+        "crc": {
+          "valid": true,
+          "value": 50220
         }
       }
     ],
@@ -14,7 +30,19 @@
       {
         "crc": {
           "valid": true,
-          "value": 16574
+          "value": 60211
+        }
+      },
+      {
+        "crc": {
+          "valid": true,
+          "value": 34202
+        }
+      },
+      {
+        "crc": {
+          "valid": true,
+          "value": 11908
         }
       }
     ],
