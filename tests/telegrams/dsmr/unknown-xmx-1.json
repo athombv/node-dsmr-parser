@@ -1,0 +1,45 @@
+{
+  "dsmr": {
+    "header": {
+      "identifier": "XMXABCE000012345",
+      "xxx": "XMX",
+      "z": "5"
+    }
+  },
+  "cosem": {
+    "unknownObjects": [],
+    "knownObjects": [
+      "0-0:96.1.1(0123456789ABCDEF)",
+      "1-0:1.8.1(11667.440*kWh)",
+      "1-0:1.8.2(11781.558*kWh)",
+      "1-0:2.8.1(00000.000*kWh)",
+      "1-0:2.8.2(00000.000*kWh)",
+      "0-0:96.14.0(0001)",
+      "1-0:1.7.0(0000.55*kW)",
+      "1-0:2.7.0(0000.00*kW)",
+      "0-0:96.13.1()",
+      "0-0:96.13.0()"
+    ]
+  },
+  "metadata": {
+    "equipmentId": "0123456789ABCDEF",
+    "numericMessage": 0,
+    "textMessage": ""
+  },
+  "electricity": {
+    "tariffs": {
+      "1": {
+        "received": 11667440,
+        "returned": 0
+      },
+      "2": {
+        "received": 11781558,
+        "returned": 0
+      }
+    },
+    "currentTariff": 1,
+    "powerReceivedTotal": 550,
+    "powerReturnedTotal": 0
+  },
+  "mBus": {}
+}

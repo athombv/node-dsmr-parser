@@ -1,0 +1,73 @@
+{
+  "hdlc": {
+    "headers": [
+      {
+        "destinationAddress": 21,
+        "sourceAddress": 16,
+        "crc": {
+          "valid": true,
+          "value": 1276
+        }
+      }
+    ],
+    "footers": [
+      {
+        "crc": {
+          "valid": true,
+          "value": 34504
+        }
+      }
+    ]
+  },
+  "dlms": {
+    "invokeId": 0,
+    "timestamp": "",
+    "unknownObjects": [
+      "octet_string: 07e1081003100005ff800000"
+    ],
+    "payloadType": "BasicList"
+  },
+  "cosem": {
+    "unknownObjects": [
+      "1-1:0.0.5(5706567000000000)",
+      "1-1:96.1.1(000000000000000000)",
+      "1-1:3.7.0(0)",
+      "1-1:4.7.0(0)",
+      "1-1:3.8.0(0)",
+      "1-1:4.8.0(0)"
+    ],
+    "knownObjects": [
+      "1-1:1.7.0(0)",
+      "1-1:2.7.0(0)",
+      "1-1:31.7.0(0)",
+      "1-1:51.7.0(0)",
+      "1-1:71.7.0(0)",
+      "1-1:32.7.0(0)",
+      "1-1:52.7.0(0)",
+      "1-1:72.7.0(0)",
+      "1-1:1.8.0(0)",
+      "1-1:2.8.0(0)"
+    ]
+  },
+  "electricity": {
+    "powerReceivedTotal": 0,
+    "powerReturnedTotal": 0,
+    "current": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 0
+    },
+    "voltage": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 0
+    },
+    "total": {
+      "received": 0,
+      "returned": 0
+    }
+  },
+  "mBus": {},
+  "metadata": {},
+  "crcValid": true
+}

@@ -1,4 +1,4 @@
-export class DSMRError extends Error {
+export class SmartMeterError extends Error {
   rawTelegram?: Buffer;
 
   /** Optionally add the raw telegram that caused the error. */
@@ -7,17 +7,17 @@ export class DSMRError extends Error {
   }
 }
 
-export class DSMRParserError extends DSMRError {
+export class SmartMeterParserError extends SmartMeterError {
   constructor(message: string) {
     super(message);
-    this.name = 'DSMRParserError';
+    this.name = 'SmartMeterParserError';
   }
 }
 
-export class DSMRDecryptionError extends DSMRError {
+export class SmartMeterDecryptionError extends SmartMeterError {
   constructor(originalError: unknown) {
-    super('DSMR decryption failed: ', { cause: originalError });
-    this.name = 'DSMRDecryptionError';
+    super('Decryption failed: ', { cause: originalError });
+    this.name = 'DecryptionError';
 
     if (typeof originalError === 'string') {
       this.message += originalError;
@@ -29,30 +29,47 @@ export class DSMRDecryptionError extends DSMRError {
   }
 }
 
-export class DSMRDecodeError extends DSMRError {
+export class SmartMeterDecodeError extends SmartMeterError {
   constructor(message: string) {
     super(message);
-    this.name = 'DSMRDecodeError';
+    this.name = 'DecodeError';
   }
 }
 
-export class DSMRStartOfFrameNotFoundError extends DSMRDecodeError {
+export class StartOfFrameNotFoundError extends SmartMeterDecodeError {
   constructor() {
     super('Start of frame not found');
-    this.name = 'DSMRStartOfFrameNotFoundError';
+    this.name = 'StartOfFrameNotFoundError';
   }
 }
 
-export class DSMRDecryptionRequired extends DSMRDecodeError {
+export class SmartMeterDecryptionRequired extends SmartMeterDecodeError {
   constructor() {
-    super('Encrypted DSMR frame detected');
-    this.name = 'DSMRDecryptionRequired';
+    super('Encrypted frame detected');
+    this.name = 'DecryptionRequired';
   }
 }
 
-export class DSMRTimeoutError extends DSMRDecodeError {
+export class SmartMeterTimeoutError extends SmartMeterDecodeError {
   constructor() {
     super('Timeout while waiting for full frame');
-    this.name = 'DSMRTimeoutError';
+    this.name = 'TimeoutError';
   }
 }
+
+export class SmartMeterUnknownMessageTypeError extends SmartMeterError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnknownMessageTypeError';
+  }
+}
+
+export const toSmartMeterError = (error: unknown) => {
+  if (error instanceof SmartMeterError) {
+    return error;
+  } else if (error instanceof Error) {
+    return new SmartMeterError(error.message, { cause: error });
+  } else {
+    return new SmartMeterError(`Unknown error: ${String(error)}`);
+  }
+};

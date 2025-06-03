@@ -1,3 +1,5 @@
 /node_modules
 /dist
 /private
+/tests/telegrams/dlms/*-data.json
+/tests/telegrams/dlms/*-data.txt
