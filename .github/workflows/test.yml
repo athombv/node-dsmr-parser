@@ -13,5 +13,23 @@ on:
 jobs:
   test:
     name: Test
-    uses: athombv/athom-github-workflow/.github/workflows/test.yml@master
-    secrets: inherit
+    runs-on: buildjet-2vcpu-ubuntu-2204-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Setup Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Build
+        run: |
+          npm ci --audit=false
+          npm run build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
+
+      - name: Test
+        run: npm run test

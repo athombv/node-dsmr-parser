@@ -1,16 +1,32 @@
 /*
  * This is an example of how to parse Smart Meter data when connected to the USB port of a Homey Energy Dongle.
- * Homey Energy Dongle will output the raw data from the meter, encapsulated in a JSON object. After each JSON object,
- * a newline is printed, which can be used to detect the end of the JSON object.
+ * Homey Energy Dongle will output the raw data from the connected Smart Meter over its USB-C port. This data can be parsed
+ * using the DSMR parser library.
  *
- *  > **Note**: In theory a JSON object could contain a newline, but Homey Energy Dongle will always output
- *  > flattened JSON objects, so this is not a concern.
+ * To get started, plug in the Homey Energy Dongle to a PC and to the Smart Meter. Then run this script as follows:
+ *
+ * node examples/homey-energy-dongle-usb.js
+ *
+ * The script will automatically detect the Homey Energy Dongle and start parsing data from from your Smart Meter!
  */
 import { SerialPort } from 'serialport';
-import { DSMRError, DSMR } from '@athombv/dsmr-parser';
+import {
+  DlmsStreamParser,
+  UnencryptedDSMRStreamParser,
+  EncryptedDSMRStreamParser,
+} from '@athombv/dsmr-parser';
 
-let serialPortPath = process.argv[2];
-const DECRYPTION_KEY = process.argv[3];
+const MODE = process.argv[2];
+let serialPortPath = process.argv[3];
+const DECRYPTION_KEY = process.argv[4];
+
+if (!MODE || (MODE !== 'dsmr' && MODE !== 'dlms')) {
+  console.log(
+    'Usage: node examples/homey-energy-dongle-usb.js <mode> <port> <decryption key (optional)>',
+  );
+  console.log('No valid mode provided. Use "dsmr" or "dlms".');
+  process.exit(1);
+}
 
 if (!serialPortPath) {
   const allPorts = await SerialPort.list();
@@ -22,7 +38,7 @@ if (!serialPortPath) {
 
   if (possiblePorts.length === 0) {
     console.log(
-      'Usage: npx tsx examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
+      'Usage: node examples/homey-energy-dongle-usb.js <mode> <port> <decryption key (optional)>',
     );
     console.log('No Homey Energy Dongle found.');
     process.exit(1);
@@ -32,7 +48,7 @@ if (!serialPortPath) {
       console.log(`- ${port.path}`);
     }
     console.log(
-      'Usage: npx tsx examples/homey-energy-dongle-usb.js <port> <decryption key (optional)>',
+      'Usage: node examples/homey-energy-dongle-usb.js <mode> <port> <decryption key (optional)>',
     );
     process.exit(1);
   } else {
@@ -63,25 +79,51 @@ const serialPort = new SerialPort(
   },
 );
 
-const parser = DSMR.createStreamParser({
-  stream: serialPort,
-  decryptionKey: DECRYPTION_KEY,
-  detectEncryption: true,
-  callback: (error, result) => {
-    if (error instanceof DSMRError) {
-      console.error('Error parsing DSMR data:', error.message);
-      console.error('Raw data:', error.rawTelegram?.toString('hex'));
-    } else if (error) {
-      console.error('Error:', error);
-    } else {
-      console.log('Raw telegram:');
-      console.log(result.raw);
-      console.log('Parsed telegram:');
-      delete result.raw;
-      console.log(result);
-    }
-  },
-});
+// Create a DSMR parser that listens to the UART stream.
+const parser = (() => {
+  if (MODE === 'dsmr' && !DECRYPTION_KEY) {
+    return new UnencryptedDSMRStreamParser({
+      stream,
+      detectEncryption: true,
+      callback: (error, result) => {
+        if (error) {
+          console.error('Error parsing DSMR data:', error);
+        } else {
+          console.log('Parsed telegram:');
+          console.dir(result, { depth: Infinity });
+        }
+      },
+    });
+  }
+
+  if (MODE === 'dsmr' && DECRYPTION_KEY) {
+    return new EncryptedDSMRStreamParser({
+      stream,
+      decryptionKey: DECRYPTION_KEY,
+      callback: (error, result) => {
+        if (error) {
+          console.error('Error parsing DSMR data:', error);
+        } else {
+          console.log('Parsed telegram:');
+          console.dir(result, { depth: Infinity });
+        }
+      },
+    });
+  }
+
+  return new DlmsStreamParser({
+    stream,
+    decryptionKey: DECRYPTION_KEY,
+    callback: (error, result) => {
+      if (error) {
+        console.log('Error parsing DLMS data:', error.message);
+      } else {
+        console.log('Parsed DLMS telegram:');
+        console.dir(result, { depth: Infinity });
+      }
+    },
+  });
+})();
 
 // Make sure to close the port when the process exits
 process.on('SIGINT', () => {

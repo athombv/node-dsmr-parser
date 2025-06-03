@@ -12,10 +12,10 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204-arm
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e
         with:
           node-version-file: '.nvmrc'
           registry-url: 'https://npm.pkg.github.com'
@@ -55,7 +55,7 @@ jobs:
         # Post a Slack notification on success/failure
       - name: Slack notify
         if: always()
-        uses: innocarpe/actions-slack@v1
+        uses: innocarpe/actions-slack@0a7257df6b0ee9c03e24af13ad8b58709c50d3c1
         with:
           status: ${{ job.status }}
           success_text: '${{github.repository}} - Published ${{ env.package_name }}@${{ env.package_version }} to GitHub Packages Registry 🚀'

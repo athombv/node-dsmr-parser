@@ -1,6 +1,6 @@
 {
   "name": "@athombv/dsmr-parser",
-  "version": "1.0.0-rc.13",
+  "version": "2.0.0-2",
   "description": "DSMR Parser for Smart Meters",
   "type": "module",
   "main": "dist/index.js",
@@ -12,13 +12,15 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "test": "node --import tsx --test-reporter spec --test ./tests/*.spec.ts",
+    "test": "node --import tsx --test-reporter spec --test ./tests/**/*.spec.ts",
     "lint": "eslint . && npm run prettier:check",
     "build": "tsc",
     "prettier": "prettier . --write",
     "prettier:check": "prettier . --check",
     "tool:parse-telegram": "tsx ./tools/parse-telegram.ts",
-    "tool:update-test-telegrams": "tsx ./tools/update-test-telegrams.ts"
+    "tool:update-test-telegrams": "tsx ./tools/update-test-telegrams.ts",
+    "tool:decrypt-telegram": "tsx ./tools/decrypt-telegram.ts",
+    "tool:encrypt-telegram": "tsx ./tools/encrypt-telegram.ts"
   },
   "repository": {
     "type": "git",
@@ -42,6 +44,7 @@
     "serialport": "^12.0.0",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
-    "typescript-eslint": "^8.0.0"
+    "typescript-eslint": "^8.0.0",
+    "ws": "^8.18.1"
   }
 }

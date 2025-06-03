@@ -1,5 +1,8 @@
 # DSMR Parser
 
+[![Test](https://github.com/athombv/node-dsmr-parser/actions/workflows/test.yml/badge.svg)](https://github.com/athombv/node-dsmr-parser/actions/workflows/test.yml)
+[![Build](https://github.com/athombv/node-dsmr-parser/actions/workflows/build.yml/badge.svg)](https://github.com/athombv/node-dsmr-parser/actions/workflows/build.yml)
+
 This module can parse Dutch Smart Meter Requirements (DSMR) messages, and return their contents as JavaScript Objects.
 
 ## Installation
@@ -109,7 +112,7 @@ Result: {
 }
 ```
 
-### Using Homey Energy Dongle
+### Connecting Homey Energy Dongle using USB
 
 When you connect a PC to Homey Energy Dongle, you can read the raw data from the meter from Homey Energy Dongle's USB port. An example
 script of how to do this is located in [`examples/homey-energy-dongle-usb.js`](./examples/homey-energy-dongle-usb.js). To run this example you need to:
@@ -130,14 +133,49 @@ npm ci
 npm run build
 ```
 
-5. Run the example script
+5. Connect Homey Energy Dongle to a Smart Meter
+6. Connect the USB-C port of Homey Energy Dongle to your PC
+7. Run the example script:
+   - Replace `<mode>` with either `dsmr` or `dlms`.
 
 ```sh
-node examples/homey-energy-dongle-usb.js
+node examples/homey-energy-dongle-usb.js <mode>
 ```
 
 If the data from your meter is encrypted, you'll need to provide the decryption key and the specific serial port to connect to. For example:
 
 ```sh
-node examples/homey-energy-dongle-usb.js /dev/tty.usbmodem101 1234567890123456
+node examples/homey-energy-dongle-usb.js dsmr /dev/tty.usbmodem101 1234567890123456
+```
+
+### Connection Homey Energy Dongle using WebSocket
+
+Homey Energy Dongle has a Local WebSocket API. An example script of how to use this Local API is located in [`examples/homey-energy-dongle-ws.js`](./examples/homey-energy-dongle-ws.js).
+To run this example, you need to:
+
+1. Have NodeJS and git installed on your system
+2. Open a terminal window
+3. Clone this repository
+
+```sh
+git clone https://github.com/athombv/node-dsmr-parser
+```
+
+4. Install the dependencies and build the project
+
+```sh
+cd node-dsmr-parser
+npm ci
+npm run build
+```
+
+5. Connect Homey Energy Dongle to a Smart Meter
+6. Set up Homey Energy Dongle in the Homey app
+7. Enable the Local API in Homey Energy Dongle's settings in Homey
+   - You can also find Homey Energy Dongle's IP address here
+8. Run the example script:
+   - `mode` must be either `dsmr` or `dlms`.
+
+```sh
+node examples/homey-energy-dongle-ws.js <mode> <ip> <decryption key (optional)>
 ```

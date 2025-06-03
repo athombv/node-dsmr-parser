@@ -1,0 +1,60 @@
+{
+  "hdlc": {
+    "headers": [
+      {
+        "destinationAddress": 32,
+        "sourceAddress": 577,
+        "crc": {
+          "valid": true,
+          "value": 54914
+        }
+      }
+    ],
+    "footers": [
+      {
+        "crc": {
+          "valid": true,
+          "value": 50400
+        }
+      }
+    ]
+  },
+  "dlms": {
+    "invokeId": 0,
+    "timestamp": "",
+    "unknownObjects": [],
+    "payloadType": "BasicStructure"
+  },
+  "cosem": {
+    "unknownObjects": [
+      "1-1:0.2.129(AIDON_V0001)",
+      "0-0:96.1.7(6515)",
+      "1-0:3.7.0(996*var)",
+      "1-0:4.7.0(0*var)"
+    ],
+    "knownObjects": [
+      "0-0:96.1.0(7359992890941742)",
+      "1-0:1.7.0(1362*W)",
+      "1-0:2.7.0(0*W)",
+      "1-0:31.7.0(9.3*A)",
+      "1-0:32.7.0(250*V)"
+    ]
+  },
+  "electricity": {
+    "powerReceivedTotal": 1362,
+    "powerReturnedTotal": 0,
+    "current": {
+      "l1": 9.3
+    },
+    "voltage": {
+      "l1": 250
+    }
+  },
+  "mBus": {
+    "0": {
+      "equipmentId": "7359992890941742"
+    }
+  },
+  "metadata": {},
+  "crcValid": true
+}
