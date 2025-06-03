@@ -113,5 +113,6 @@
       "value": 6362.12,
       "unit": "m3"
     }
-  }
+  },
+  "crcValid": false
 }

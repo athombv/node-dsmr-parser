@@ -258,6 +258,8 @@ export const parseDsmr = (options: DsmrParserOptions): DsmrParserResult => {
       telegram,
       crc: result.dsmr.crc.value,
     });
+
+    result.crcValid = result.dsmr.crc.valid;
   }
 
   if (objectsParsed === 0) {

@@ -67,5 +67,6 @@
     "powerReceivedTotal": 0,
     "powerReturnedTotal": 0
   },
-  "mBus": {}
+  "mBus": {},
+  "crcValid": true
 }

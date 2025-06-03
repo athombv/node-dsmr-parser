@@ -17,10 +17,7 @@
           "value": 55223
         }
       }
-    ],
-    "crc": {
-      "valid": false
-    }
+    ]
   },
   "dlms": {
     "invokeId": 0,
@@ -82,5 +79,6 @@
     }
   },
   "mBus": {},
-  "metadata": {}
+  "metadata": {},
+  "crcValid": false
 }

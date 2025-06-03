@@ -56,5 +56,6 @@
     "powerReceivedTotal": 0,
     "powerReturnedTotal": 3996
   },
-  "mBus": {}
+  "mBus": {},
+  "crcValid": false
 }

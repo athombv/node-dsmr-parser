@@ -107,5 +107,6 @@
       "l3": 1.148
     }
   },
-  "mBus": {}
+  "mBus": {},
+  "crcValid": false
 }

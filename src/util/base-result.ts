@@ -91,4 +91,6 @@ export type BaseParserResult = {
   >;
   /** Only set when encryption is used */
   additionalAuthenticatedDataValid?: boolean;
+  /** Only set when the frames contain a crc */
+  crcValid?: boolean;
 };

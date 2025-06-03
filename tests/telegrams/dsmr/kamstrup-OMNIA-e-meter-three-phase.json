@@ -74,5 +74,6 @@
       "l3": 4.6
     }
   },
-  "mBus": {}
+  "mBus": {},
+  "crcValid": false
 }

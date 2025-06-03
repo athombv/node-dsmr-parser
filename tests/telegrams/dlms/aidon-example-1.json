@@ -17,10 +17,7 @@
           "value": 50400
         }
       }
-    ],
-    "crc": {
-      "valid": true
-    }
+    ]
   },
   "dlms": {
     "invokeId": 0,
@@ -58,5 +55,6 @@
       "equipmentId": "7359992890941742"
     }
   },
-  "metadata": {}
+  "metadata": {},
+  "crcValid": true
 }

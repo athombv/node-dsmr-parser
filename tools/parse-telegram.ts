@@ -82,14 +82,7 @@ const callback: SmartMeterStreamCallback = (error, result) => {
   } else if (!result) {
     console.error('No result and no error');
   } else {
-    let crcValid = true;
-    if ('hdlc' in result) {
-      crcValid = result.hdlc.crc.valid !== false;
-    } else if ('dsmr' in result) {
-      crcValid = result.dsmr.crc?.valid !== false;
-    }
-
-    if (!crcValid) {
+    if (!result.crcValid) {
       console.error('CRC validation failed');
     }
     console.dir(result, { depth: null });

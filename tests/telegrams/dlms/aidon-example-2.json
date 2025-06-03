@@ -17,10 +17,7 @@
           "value": 16574
         }
       }
-    ],
-    "crc": {
-      "valid": true
-    }
+    ]
   },
   "dlms": {
     "invokeId": 0,
@@ -92,5 +89,6 @@
   "mBus": {},
   "metadata": {
     "timestamp": "07e30c1001073b28ff8000ff"
-  }
+  },
+  "crcValid": true
 }

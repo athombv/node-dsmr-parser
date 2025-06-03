@@ -71,9 +71,6 @@ export type HdlcParserResult = BaseParserResult & {
         valid: boolean;
       };
     }[];
-    crc: {
-      valid: boolean;
-    };
   };
   dlms: {
     invokeId: number;

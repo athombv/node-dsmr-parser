@@ -88,5 +88,6 @@
       "value": 1234,
       "unit": "m3"
     }
-  }
+  },
+  "crcValid": false
 }

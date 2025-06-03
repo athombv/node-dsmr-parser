@@ -186,9 +186,6 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
               },
             };
           }),
-          crc: {
-            valid: allCrcValid,
-          },
         },
         // DLMS properties will be filled in by `decodeDlmsObis`
         dlms: {
@@ -204,6 +201,7 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
         electricity: {},
         mBus: {},
         metadata: {},
+        crcValid: allCrcValid,
       };
 
       if (this.options.decryptionKey) {
