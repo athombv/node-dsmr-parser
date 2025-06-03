@@ -5,7 +5,7 @@ export type BaseParserResult = {
   };
   metadata: {
     dsmrVersion?: number;
-    timestamp?: string; // TODO make this a date object
+    timestamp?: Date | string;
     equipmentId?: string;
     events?: {
       powerFailures?: number;
@@ -85,7 +85,7 @@ export type BaseParserResult = {
       equipmentId?: string;
       value?: number;
       unit?: string;
-      timestamp?: string; // TODO: Parse to date object
+      timestamp?: Date | string;
       recordingPeriodMinutes?: number; // DSMR
     }
   >;

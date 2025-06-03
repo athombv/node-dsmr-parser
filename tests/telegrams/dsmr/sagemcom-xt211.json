@@ -54,7 +54,7 @@
     ]
   },
   "metadata": {
-    "timestamp": "123412341234W",
+    "timestamp": "2014-10-13T10:12:34.000Z",
     "events": {
       "powerFailures": 18,
       "longPowerFailures": 4,

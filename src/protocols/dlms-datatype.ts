@@ -148,14 +148,14 @@ const parseStructureOrArray = (index: number, buffer: Buffer) => {
   };
 };
 
-// TODO: We need to add all data types, because otherwise
-// we will get an error when we try to parse a data type we don't know.
 /**
  * A DLMS data type is:
  *
  * - A tag
  * - A Length (only for some data types)
  * - The value (length is either determined by the tag and length)
+ * 
+ * @note There are more data types. But these are the ones used by smart meters.
  */
 export const DlmsDataTypes = new DlmsDataTypesInternal()
   .addDataType('array', 0x01, parseStructureOrArray)

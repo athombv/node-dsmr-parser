@@ -1,5 +1,10 @@
 import { getDlmsObisCode, isDlmsStructureLike } from '../dlms-datatype.js';
-import { addUnknownDlmsCosemObject, addUnknownDlmsObject, makeDlmsPayload, parseDlmsCosem } from './dlms-payload.js';
+import {
+  addUnknownDlmsCosemObject,
+  addUnknownDlmsObject,
+  makeDlmsPayload,
+  parseDlmsCosem,
+} from './dlms-payload.js';
 
 export const DlmsPayloadDescribedList = makeDlmsPayload('DescribedList', {
   detector(dlms) {

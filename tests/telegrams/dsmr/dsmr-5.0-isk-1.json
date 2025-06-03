@@ -53,7 +53,7 @@
   },
   "metadata": {
     "dsmrVersion": 5,
-    "timestamp": "181106140429W",
+    "timestamp": "2018-11-06T14:04:29.000Z",
     "equipmentId": "4530303334303036383130353136343136",
     "events": {
       "powerFailures": 6,
@@ -110,7 +110,7 @@
     "1": {
       "deviceType": 3,
       "equipmentId": "4730303339303031373030343630313137",
-      "timestamp": "181106140010W",
+      "timestamp": "2018-11-06T14:00:10.000Z",
       "value": 1569.646,
       "unit": "m3"
     }

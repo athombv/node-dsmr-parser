@@ -37,7 +37,7 @@
   },
   "metadata": {
     "dsmrVersion": 4,
-    "timestamp": "000101010000W",
+    "timestamp": "2000-01-01T01:00:00.000Z",
     "equipmentId": "4530303034303031353931303932323134",
     "events": {
       "powerFailures": 23,

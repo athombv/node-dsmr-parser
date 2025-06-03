@@ -82,7 +82,7 @@
   },
   "metadata": {
     "dsmrVersion": 4.2,
-    "timestamp": "200706104157S",
+    "timestamp": "2020-07-06T10:41:57.000Z",
     "events": {
       "powerFailures": 99,
       "voltageSags": {
@@ -130,7 +130,7 @@
     "1": {
       "deviceType": 3,
       "equipmentId": "464C4F313839393030303630333535",
-      "timestamp": "200706103140S",
+      "timestamp": "2020-07-06T10:31:40.000Z",
       "value": 0.006,
       "unit": "m3"
     },
@@ -145,7 +145,7 @@
     "4": {
       "deviceType": 3,
       "equipmentId": "454C53333533353839393830333030",
-      "timestamp": "200706102900S",
+      "timestamp": "2020-07-06T10:29:00.000Z",
       "value": 28.103,
       "unit": "m3"
     }

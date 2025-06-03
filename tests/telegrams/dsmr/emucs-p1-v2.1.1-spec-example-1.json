@@ -62,7 +62,7 @@
   },
   "metadata": {
     "equipmentId": "3153414733313031303231363035",
-    "timestamp": "200512135409S",
+    "timestamp": "2020-05-12T13:54:09.000Z",
     "textMessage": ""
   },
   "electricity": {
@@ -103,13 +103,13 @@
   "mBus": {
     "1": {
       "deviceType": 3,
-      "timestamp": "200512134558S",
+      "timestamp": "2020-05-12T13:45:58.000Z",
       "value": 112.384,
       "unit": "m3"
     },
     "2": {
       "deviceType": 7,
-      "timestamp": "200512134558S",
+      "timestamp": "2020-05-12T13:45:58.000Z",
       "value": 872.234,
       "unit": "m3"
     }

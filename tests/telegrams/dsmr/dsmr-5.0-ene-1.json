@@ -50,7 +50,7 @@
   },
   "metadata": {
     "dsmrVersion": 5,
-    "timestamp": "210330192305S",
+    "timestamp": "2021-03-30T19:23:05.000Z",
     "equipmentId": "serienummer",
     "events": {
       "powerFailures": 220,

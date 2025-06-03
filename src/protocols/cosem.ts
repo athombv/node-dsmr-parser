@@ -118,12 +118,29 @@ class CosemLibraryInternal {
   }
 }
 
+const parseTimeStamp = (value: string): Date | string => {
+  // YYMMDDhhmmssX used in DSMR P1 telegrams
+  // X = 'W' for winter time, 'S' for summer time
+  const match = /^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})([WS]?)$/.exec(value);
+  if (match) {
+    const year = parseInt(match[1], 10) + 2000; // DSMR uses YY, so we add 2000
+    const month = parseInt(match[2], 10);
+    const day = parseInt(match[3], 10);
+    const hour = parseInt(match[4], 10);
+    const minute = parseInt(match[5], 10);
+    const second = parseInt(match[6], 10);
+    return new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  }
+
+  return value;
+};
+
 export const CosemLibrary = new CosemLibraryInternal()
   .addNumberParser('1-3:0.2.8', ({ valueNumber, result }) => {
     result.metadata.dsmrVersion = valueNumber / 10;
   })
   .addStringParser('0-0:1.0.0', ({ valueString, result }) => {
-    result.metadata.timestamp = valueString; // TODO: Parse to date object
+    result.metadata.timestamp = parseTimeStamp(valueString);
   })
   .addStringParser('0-0:96.1.1', ({ valueString, result }) => {
     result.metadata.equipmentId = valueString;
@@ -309,7 +326,7 @@ export const CosemLibrary = new CosemLibraryInternal()
     const unit = match[3];
 
     result.mBus[busId] = result.mBus[busId] ?? {};
-    result.mBus[busId].timestamp = timestamp; // TODO: Parse to date object
+    result.mBus[busId].timestamp = parseTimeStamp(timestamp);
     result.mBus[busId].value = mbusValue;
     result.mBus[busId].unit = unit;
   })
@@ -348,7 +365,7 @@ export const CosemLibrary = new CosemLibraryInternal()
     const mbusValue = parseFloat(nextLineMatch[1]);
 
     result.mBus[busId] = result.mBus[busId] ?? {};
-    result.mBus[busId].timestamp = timestamp; // TODO: Parse to date object
+    result.mBus[busId].timestamp = parseTimeStamp(timestamp);
     result.mBus[busId].value = mbusValue;
     result.mBus[busId].unit = unit;
     result.mBus[busId].recordingPeriodMinutes = recordingPeriodMinutes;

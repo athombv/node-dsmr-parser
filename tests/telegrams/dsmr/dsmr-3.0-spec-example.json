@@ -55,7 +55,7 @@
     "1": {
       "equipmentId": "3232323241424344313233343536373839",
       "deviceType": 3,
-      "timestamp": "090212160000",
+      "timestamp": "2009-02-12T16:00:00.000Z",
       "value": 0,
       "unit": "m3",
       "recordingPeriodMinutes": 60

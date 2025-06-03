@@ -38,7 +38,7 @@ const assertDecryptedFrameValid = ({
   // Thus, it is deleted here.
   delete parsed.additionalAuthenticatedDataValid;
 
-  assert.deepStrictEqual(parsed, expected);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(parsed)), expected);
 };
 
 describe('DSMRStreamParser', () => {
@@ -63,7 +63,10 @@ describe('DSMRStreamParser', () => {
       instance.destroy();
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[0].arguments[1])),
+        output,
+      );
       assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
     });
 
@@ -87,10 +90,16 @@ describe('DSMRStreamParser', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 2);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output1);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[0].arguments[1])),
+        output1,
+      );
       assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input1));
       assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output2);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[1].arguments[1])),
+        output2,
+      );
       assert.deepStrictEqual(callback.mock.calls[1].arguments[2], Buffer.from(input2));
     });
 
@@ -131,7 +140,10 @@ describe('DSMRStreamParser', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[0].arguments[1])),
+        output,
+      );
       assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input + '\0'));
     });
 
@@ -235,7 +247,10 @@ describe('DSMRStreamParser', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[0].arguments[1])),
+        output,
+      );
       assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
     });
 
@@ -260,7 +275,10 @@ describe('DSMRStreamParser', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[0].arguments[1])),
+        output,
+      );
       assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
 
       context.mock.timers.tick(1000);
@@ -270,7 +288,10 @@ describe('DSMRStreamParser', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 2);
       assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[1].arguments[1])),
+        output,
+      );
       assert.deepStrictEqual(callback.mock.calls[1].arguments[2], Buffer.from(input));
     });
 
@@ -296,10 +317,16 @@ describe('DSMRStreamParser', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 2);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[0].arguments[1])),
+        output,
+      );
       assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
       assert.deepStrictEqual(callback.mock.calls[1].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[1].arguments[1], output);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[1].arguments[1])),
+        output,
+      );
       assert.deepStrictEqual(callback.mock.calls[1].arguments[2], Buffer.from(input));
 
       context.mock.timers.tick(1000);
@@ -309,7 +336,10 @@ describe('DSMRStreamParser', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 3);
       assert.deepStrictEqual(callback.mock.calls[2].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[2].arguments[1], output);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[2].arguments[1])),
+        output,
+      );
       assert.deepStrictEqual(callback.mock.calls[2].arguments[2], Buffer.from(input));
     });
 
@@ -335,7 +365,10 @@ describe('DSMRStreamParser', () => {
 
       assert.deepStrictEqual(callback.mock.calls.length, 1);
       assert.deepStrictEqual(callback.mock.calls[0].arguments[0], null);
-      assert.deepStrictEqual(callback.mock.calls[0].arguments[1], output);
+      assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(callback.mock.calls[0].arguments[1])),
+        output,
+      );
       assert.deepStrictEqual(callback.mock.calls[0].arguments[2], Buffer.from(input));
 
       stream.end();
