@@ -154,7 +154,7 @@ const parseStructureOrArray = (index: number, buffer: Buffer) => {
  * - A tag
  * - A Length (only for some data types)
  * - The value (length is either determined by the tag and length)
- * 
+ *
  * @note There are more data types. But these are the ones used by smart meters.
  */
 export const DlmsDataTypes = new DlmsDataTypesInternal()

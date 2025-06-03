@@ -14,20 +14,28 @@
  */
 
 import WebSocket, { createWebSocketStream } from 'ws';
-import { DlmsStreamParser, UnencryptedDSMRStreamParser, EncryptedDSMRStreamParser } from '@athombv/dsmr-parser';
+import {
+  DlmsStreamParser,
+  UnencryptedDSMRStreamParser,
+  EncryptedDSMRStreamParser,
+} from '@athombv/dsmr-parser';
 
 const ENERGY_DONGLE_IP = process.argv[2];
 const MODE = process.argv[3];
 const DECRYPTION_KEY = process.argv[4];
 
 if (!ENERGY_DONGLE_IP) {
-  console.log('Usage: node examples/homey-energy-dongle-ws.js <ip> <mode> <decryption key (optional)>');
+  console.log(
+    'Usage: node examples/homey-energy-dongle-ws.js <ip> <mode> <decryption key (optional)>',
+  );
   console.log('No IP address provided.');
   process.exit(1);
 }
 
 if (!MODE || (MODE !== 'dsmr' && MODE !== 'dlms')) {
-  console.log('Usage: node examples/homey-energy-dongle-ws.js <ip> <mode> <decryption key (optional)>');
+  console.log(
+    'Usage: node examples/homey-energy-dongle-ws.js <ip> <mode> <decryption key (optional)>',
+  );
   console.log('No valid mode provided. Use "dsmr" or "dlms".');
   process.exit(1);
 }
@@ -127,7 +135,7 @@ while (true) {
         },
       });
     }
-    
+
     if (MODE === 'dsmr' && DECRYPTION_KEY) {
       return new EncryptedDSMRStreamParser({
         stream,
@@ -140,7 +148,7 @@ while (true) {
             console.dir(result, { depth: Infinity });
           }
         },
-      })
+      });
     }
 
     return new DlmsStreamParser({
@@ -156,24 +164,6 @@ while (true) {
       },
     });
   })();
-  // const parser = DSMR.createStreamParser({
-  //   stream,
-  //   decryptionKey: DECRYPTION_KEY,
-  //   detectEncryption: true,
-  //   callback: (error, result) => {
-  //     if (error instanceof DSMRError) {
-  //       console.error('Error parsing DSMR data:', error.message);
-  //       console.error('Raw data:', error.rawTelegram?.toString('hex'));
-  //     } else if (error) {
-  //       console.error('Error:', error);
-  //     } else {
-  //       // Not very useful to log the raw telegram here as it is already logged by the data listener on the stream.
-  //       delete result.raw;
-  //       console.log('Parsed telegram:');
-  //       console.dir(result, { depth: Infinity });
-  //     }
-  //   },
-  // });
 
   // Don't continue the loop until the connection is closed.
   await new Promise((resolve) => {

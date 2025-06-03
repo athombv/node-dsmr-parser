@@ -26,9 +26,7 @@ export type DSMRStreamParserOptions = Omit<DsmrParserOptions, 'telegram'> & {
    * valid start of frame/header is received.
    */
   fullFrameRequiredWithinMs?: number;
-  /**
-   * Data that is already available in the stream when the parser is created.
-   */
+  /** Data that is already available in the stream when the parser is created. */
   initialData?: Buffer;
 };
 

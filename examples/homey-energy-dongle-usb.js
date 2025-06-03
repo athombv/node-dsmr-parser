@@ -10,7 +10,11 @@
  * The script will automatically detect the Homey Energy Dongle and start parsing data from from your Smart Meter!
  */
 import { SerialPort } from 'serialport';
-import { DlmsStreamParser, UnencryptedDSMRStreamParser, EncryptedDSMRStreamParser } from '@athombv/dsmr-parser';
+import {
+  DlmsStreamParser,
+  UnencryptedDSMRStreamParser,
+  EncryptedDSMRStreamParser,
+} from '@athombv/dsmr-parser';
 
 const MODE = process.argv[2];
 let serialPortPath = process.argv[3];
@@ -91,7 +95,7 @@ const parser = (() => {
       },
     });
   }
-  
+
   if (MODE === 'dsmr' && DECRYPTION_KEY) {
     return new EncryptedDSMRStreamParser({
       stream,
@@ -104,7 +108,7 @@ const parser = (() => {
           console.dir(result, { depth: Infinity });
         }
       },
-    })
+    });
   }
 
   return new DlmsStreamParser({

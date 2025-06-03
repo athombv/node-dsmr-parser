@@ -5,7 +5,7 @@ import path from 'node:path';
 import { PassThrough } from 'node:stream';
 
 import { SmartMeterDecryptionError, SmartMeterError } from '../src/index.js';
-import { StreamDetectType } from '../src/stream/stream-detect-type.js';
+import { SmartMeterDetectTypeStream } from '../src/stream/stream-detect-type.js';
 import { DlmsStreamParser } from '../src/stream/stream-dlms.js';
 import { EncryptedDSMRStreamParser } from '../src/stream/stream-encrypted-dsmr.js';
 import { SmartMeterStreamCallback, SmartMeterStreamParser } from '../src/stream/stream.js';
@@ -46,7 +46,7 @@ const waitForFrameDetection = () => {
     encrypted: boolean;
     data: Buffer;
   }>((resolve) => {
-    const detector = new StreamDetectType({
+    const detector = new SmartMeterDetectTypeStream({
       stream: passthrough,
       callback: (result) => {
         detector.destroy();
