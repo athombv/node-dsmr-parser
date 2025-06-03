@@ -24,10 +24,10 @@ type StreamDetectTypeCallback = (result: {
 }) => void;
 
 /** This class detects the type of stream (DSMR or DLMS) and whether it is encrypted or not. */
-export class StreamDetectType implements SmartMeterStreamParser {
+export class SmartMeterDetectTypeStream implements SmartMeterStreamParser {
   public readonly startOfFrameByte = DSMR_SOF;
 
-  private boundOnData: StreamDetectType['onData'];
+  private boundOnData: SmartMeterDetectTypeStream['onData'];
   private telegram = Buffer.alloc(0);
 
   constructor(

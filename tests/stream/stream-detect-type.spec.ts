@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { describe, it, mock } from 'node:test';
 import { chunkBuffer, readHexFile, readDsmrTelegramFromFiles } from './../test-utils.js';
-import { StreamDetectType } from '../../src/stream/stream-detect-type.js';
+import { SmartMeterDetectTypeStream } from '../../src/stream/stream-detect-type.js';
 
 describe('Stream: Detect Type', () => {
   it('Detects unencrypted DSMR telegrams', async () => {
@@ -12,7 +12,7 @@ describe('Stream: Detect Type', () => {
     const stream = new PassThrough();
     const callback = mock.fn();
 
-    const detector = new StreamDetectType({ stream, callback });
+    const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
     stream.write(input);
     stream.end();
@@ -34,7 +34,7 @@ describe('Stream: Detect Type', () => {
     const callback = mock.fn();
 
     const chunks = chunkBuffer(Buffer.from(input), 1);
-    const detector = new StreamDetectType({ stream, callback });
+    const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
     for (const chunk of chunks) {
       stream.write(chunk);
@@ -62,7 +62,7 @@ describe('Stream: Detect Type', () => {
     const stream = new PassThrough();
     const callback = mock.fn();
 
-    const detector = new StreamDetectType({ stream, callback });
+    const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
     stream.write(input);
     stream.end();
@@ -84,7 +84,7 @@ describe('Stream: Detect Type', () => {
     const callback = mock.fn();
 
     const chunks = chunkBuffer(input, 1);
-    const detector = new StreamDetectType({ stream, callback });
+    const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
     for (const chunk of chunks) {
       stream.write(chunk);
@@ -110,7 +110,7 @@ describe('Stream: Detect Type', () => {
     const stream = new PassThrough();
     const callback = mock.fn();
 
-    const detector = new StreamDetectType({ stream, callback });
+    const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
     stream.write(input);
     stream.end();
@@ -130,7 +130,7 @@ describe('Stream: Detect Type', () => {
     const callback = mock.fn();
 
     const chunks = chunkBuffer(input, 1);
-    const detector = new StreamDetectType({ stream, callback });
+    const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
     for (const chunk of chunks) {
       stream.write(chunk);
@@ -158,7 +158,7 @@ describe('Stream: Detect Type', () => {
     const stream = new PassThrough();
     const callback = mock.fn();
 
-    const detector = new StreamDetectType({ stream, callback });
+    const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
     stream.write(input);
     stream.end();
@@ -180,7 +180,7 @@ describe('Stream: Detect Type', () => {
     const callback = mock.fn();
 
     const chunks = chunkBuffer(input, 1);
-    const detector = new StreamDetectType({ stream, callback });
+    const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
     for (const chunk of chunks) {
       stream.write(chunk);
@@ -206,7 +206,7 @@ describe('Stream: Detect Type', () => {
     const stream = new PassThrough();
     const callback = mock.fn();
 
-    const detector = new StreamDetectType({ stream, callback });
+    const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
     stream.write(input);
     stream.end();
@@ -223,7 +223,7 @@ describe('Stream: Detect Type', () => {
         const stream = new PassThrough();
         const callback = mock.fn();
 
-        const detector = new StreamDetectType({ stream, callback });
+        const detector = new SmartMeterDetectTypeStream({ stream, callback });
 
         stream.write(input);
         stream.end();

@@ -16,3 +16,4 @@ export const DSMR = {
 export { EncryptedDSMRStreamParser } from './stream/stream-encrypted-dsmr.js';
 export { UnencryptedDSMRStreamParser } from './stream/stream-unencrypted-dsmr.js';
 export { DlmsStreamParser } from './stream/stream-dlms.js';
+export { SmartMeterDetectTypeStream } from './stream/stream-detect-type.js';

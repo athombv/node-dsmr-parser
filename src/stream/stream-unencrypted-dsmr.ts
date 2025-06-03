@@ -31,6 +31,10 @@ export class UnencryptedDSMRStreamParser implements SmartMeterStreamParser {
     // End of frame is \r\n!<CRC>\r\n with the CRC being optional as
     // it is only for DSMR 4 and up.
     this.eofRegex = /\r\n!([0-9A-Fa-f]{4})?\r\n(\0)?/;
+
+    if (this.options.initialData) {
+      this.onData(this.options.initialData);
+    }
   }
 
   private onData(dataRaw: Buffer) {

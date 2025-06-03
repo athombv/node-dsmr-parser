@@ -29,6 +29,10 @@ export type DlmsStreamParserOptions = {
    * valid start of frame/header is received.
    */
   fullFrameRequiredWithinMs?: number;
+  /**
+   * Data that is already available in the stream when the parser is created.
+   */
+  initialData?: Buffer;
 };
 
 export class DlmsStreamParser implements SmartMeterStreamParser {
@@ -51,6 +55,10 @@ export class DlmsStreamParser implements SmartMeterStreamParser {
     this.options.stream.addListener('data', this.boundOnData);
 
     this.fullFrameRequiredWithinMs = options.fullFrameRequiredWithinMs ?? 5000;
+
+    if (this.options.initialData) {
+      this.onData(this.options.initialData);
+    }
   }
 
   private onData(data: Buffer) {
