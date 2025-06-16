@@ -1,49 +1,71 @@
-import { DEFAULT_FRAME_ENCODING } from './frame-validation.js';
-
-/** Calculate the CRC16 value of a buffer. This will use the polynomial: x16+x15+x2+1 (IBM) */
-export const calculateCrc16 = (data: Buffer) => {
-  let crc = 0;
-
-  for (const byte of data) {
-    crc ^= byte;
-
-    for (let i = 0; i < 8; i++) {
-      if ((crc & 0x0001) !== 0) {
-        // 0xA001 is the reversed polynomial used for this CRC.
-        crc = (crc >> 1) ^ 0xa001;
-      } else {
-        crc = crc >> 1;
-      }
-    }
+/**
+ * Mirrors the bits of a number.
+ *
+ * E.g. for 0b00001111_00001100 it returns 0b001100_11110000.
+ */
+const reflectBits = (x: number, numBits: number) => {
+  let r = 0;
+  for (let i = 0; i < numBits; i++) {
+    r = (r << 1) | (x & 1);
+    x >>= 1;
   }
-
-  return crc;
+  return r;
 };
 
 /**
- * CRC is a CRC16 value calculated over the preceding characters in the data message (from “/” to
- * “!” using the polynomial: x16+x15+x2+1). CRC16 uses no XOR in, no XOR out and is computed with
- * least significant bit first. The value is represented as 4 hexadecimal characters (MSB first).
+ * Creates a CRC16 function that can be used to calculate the CRC16 checksum for a given data
+ * buffer.
  *
- * @param telegram
- * @param enteredCrc
- * @returns
+ * @note This method only works for CRC16 checksum that have RefIn=RefOut=true.
  */
-export const isCrcValid = ({
-  telegram,
-  crc,
-  newLineChars,
+const makeReflectedCrc16Function = ({
+  polynomial,
+  initial,
+  xorOut,
 }: {
-  telegram: string;
-  crc: number;
-  newLineChars: '\r\n' | '\n';
+  polynomial: number;
+  initial: number;
+  xorOut: number;
 }) => {
-  // Strip the CRC from the telegram
-  const crcSplit = `${newLineChars}!`;
-  const telegramParts = telegram.split(crcSplit);
-  const strippedTelegram = telegramParts[0] + crcSplit;
+  const inversePolynomial = reflectBits(polynomial, 16);
 
-  const calculatedCrc = calculateCrc16(Buffer.from(strippedTelegram, DEFAULT_FRAME_ENCODING));
+  return (data: Buffer) => {
+    let crc = initial;
 
-  return calculatedCrc === crc;
+    for (const byte of data) {
+      crc ^= byte;
+
+      for (let i = 0; i < 8; i++) {
+        if ((crc & 0x0001) !== 0) {
+          crc = (crc >> 1) ^ inversePolynomial;
+        } else {
+          crc = crc >> 1;
+        }
+      }
+    }
+
+    return crc ^ xorOut;
+  };
 };
+
+/**
+ * Calculates the CRC16 checksum using CRC-16/ARC. Used for DSMR.
+ *
+ * {@link https://crccalc.com/?method=CRC-16/ARC}
+ */
+export const calculateCrc16Arc = makeReflectedCrc16Function({
+  polynomial: 0x8005,
+  initial: 0x0000,
+  xorOut: 0x0000,
+});
+
+/**
+ * Calculates the CRC16 checksum using CRC-16/IBM-SDLC. Used for HDLC.
+ *
+ * {@link https://crccalc.com/?method=CRC-16/IBM-SDLC}
+ */
+export const calculateCrc16IbmSdlc = makeReflectedCrc16Function({
+  polynomial: 0x1021,
+  initial: 0xffff,
+  xorOut: 0xffff,
+});

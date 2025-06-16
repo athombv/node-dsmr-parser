@@ -2,8 +2,8 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { TEST_AAD, TEST_DECRYPTION_KEY } from '../tests/test-utils.js';
-import { decryptFrame } from '../src/util/encryption.js';
+import { TEST_AAD, TEST_DECRYPTION_KEY, writeHexFile } from '../tests/test-utils.js';
+import { decryptDlmsFrame } from '../src/protocols/encryption.js';
 
 const inputPath = process.argv[2];
 const outputPath = process.argv[3];
@@ -43,18 +43,18 @@ if (isHexFile) {
   file = Buffer.from(fileString.replace(/\s/g, ''), 'hex');
 }
 
-const { header, footer, content } = decryptFrame({
+const { header, footer, content, error } = decryptDlmsFrame({
   data: file,
   key: Buffer.from(decryptionKey, 'hex'),
   additionalAuthenticatedData: Buffer.from(aad, 'hex'),
-  encoding: 'binary',
 });
 
 const resolvedOutputPath = path.resolve(process.cwd(), outputPath);
 
-await fs.writeFile(resolvedOutputPath, content, 'binary');
+// await fs.writeFile(resolvedOutputPath, content, 'binary');
+await writeHexFile(resolvedOutputPath, content);
 
-console.log('Telegram decrypted successfully');
+console.log('Telegram decrypted');
 console.log('Header fields:');
 console.log('  - System title:', header.systemTitle.toString('hex'));
 console.log('  - Frame counter:', header.frameCounter.toString('hex'));
@@ -63,4 +63,5 @@ console.log('  - Content length:', header.contentLength);
 console.log('Footer fields:');
 console.log('  - GCM Tag:', footer.gcmTag.toString('hex'));
 console.log();
+console.log('Decryption error:', error ? error.message : 'none');
 console.log(`Decrypted telegram written to ${resolvedOutputPath}`);

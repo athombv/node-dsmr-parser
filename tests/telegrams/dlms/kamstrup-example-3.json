@@ -1,0 +1,57 @@
+{
+  "hdlc": {
+    "headers": [
+      {
+        "destinationAddress": 21,
+        "sourceAddress": 16,
+        "crc": {
+          "valid": true,
+          "value": 7072
+        }
+      }
+    ],
+    "footers": [
+      {
+        "crc": {
+          "valid": true,
+          "value": 8453
+        }
+      }
+    ]
+  },
+  "dlms": {
+    "invokeId": 0,
+    "timestamp": "",
+    "unknownObjects": [
+      "octet_string: 07e1081003100005ff800000"
+    ],
+    "payloadType": "BasicList"
+  },
+  "cosem": {
+    "unknownObjects": [
+      "1-1:0.0.5(5706567000000000)",
+      "1-1:96.1.1(000000000000000000)"
+    ],
+    "knownObjects": [
+      "1-1:1.7.0(0)",
+      "1-1:31.7.0(0)",
+      "1-1:32.7.0(0)",
+      "1-1:1.8.0(0)"
+    ]
+  },
+  "electricity": {
+    "powerReceivedTotal": 0,
+    "current": {
+      "l1": 0
+    },
+    "voltage": {
+      "l1": 0
+    },
+    "total": {
+      "received": 0
+    }
+  },
+  "mBus": {},
+  "metadata": {},
+  "crcValid": true
+}
