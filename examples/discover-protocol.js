@@ -37,9 +37,8 @@ const discoveryParser = new SmartMeterDetectTypeStream({
     serialPort.close((err) => {
       if (err) {
         console.error('Error closing port:', err);
-      } else {
-        console.log('Serial port closed.');
       }
+
       process.exit(0);
     });
   },
@@ -52,6 +51,7 @@ setTimeout(() => {
     if (err) {
       console.error('Error closing port:', err);
     }
+
+    process.exit(0);
   });
-  process.exit(0);
 }, 30000);
