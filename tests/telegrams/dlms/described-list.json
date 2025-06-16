@@ -1,0 +1,84 @@
+{
+  "hdlc": {
+    "headers": [
+      {
+        "destinationAddress": 1,
+        "sourceAddress": 2,
+        "crc": {
+          "valid": true,
+          "value": 45603
+        }
+      }
+    ],
+    "footers": [
+      {
+        "crc": {
+          "valid": false,
+          "value": 55223
+        }
+      }
+    ]
+  },
+  "dlms": {
+    "invokeId": 0,
+    "timestamp": "",
+    "unknownObjects": [
+      "0-6:25.9.0(0006190900ff)",
+      "0-6:25.9.0(00112233445566778899aabbccddeeff)",
+      "0-0:42.0.0(aabbccddeeffee)",
+      "0-0:96.1.1(ffeeddccbbaa998877665544)",
+      "1-1:8.8.0(null)",
+      "1-1:8.8.1(null)",
+      "1-1:8.8.2(null)",
+      "1-0:13.7.0([{\"value\":3,\"type\":\"uint16\"},{\"value\":{\"type\":\"Buffer\",\"data\":[1,0,13,7,0,255]},\"type\":\"octet_string\"},{\"value\":2,\"type\":\"int8\"},{\"value\":0,\"type\":\"uint16\"}])"
+    ],
+    "payloadType": "DescribedList"
+  },
+  "cosem": {
+    "unknownObjects": [
+      "0-0:1.0.0(143)",
+      "1-1:3.7.0(205)",
+      "1-1:4.7.0(19809717)",
+      "1-1:5.8.0(78078)",
+      "1-1:5.8.1(77822)",
+      "1-1:5.8.2(0)",
+      "1-1:6.8.0(0)",
+      "1-1:6.8.1(0)",
+      "1-1:6.8.2(6)",
+      "1-1:7.8.0(3)",
+      "1-1:7.8.1(3)",
+      "1-1:7.8.2(6456638)"
+    ],
+    "knownObjects": [
+      "1-1:1.7.0(0)",
+      "1-1:2.7.0(0)",
+      "1-1:1.8.0(11164972)",
+      "1-1:1.8.1(8644745)",
+      "1-1:1.8.2(4)",
+      "1-1:2.8.0(1)",
+      "1-1:2.8.1(3)",
+      "1-1:2.8.2(155900)"
+    ]
+  },
+  "electricity": {
+    "powerReceivedTotal": 0,
+    "powerReturnedTotal": 0,
+    "total": {
+      "received": 11164972,
+      "returned": 1
+    },
+    "tariffs": {
+      "1": {
+        "received": 8644745,
+        "returned": 3
+      },
+      "2": {
+        "received": 4,
+        "returned": 155900
+      }
+    }
+  },
+  "mBus": {},
+  "metadata": {},
+  "crcValid": false
+}

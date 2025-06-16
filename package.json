@@ -1,6 +1,6 @@
 {
   "name": "@athombv/dsmr-parser",
-  "version": "1.2.2",
+  "version": "2.0.0",
   "description": "DSMR Parser for Smart Meters",
   "type": "module",
   "main": "dist/index.js",
@@ -12,7 +12,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "test": "node --import tsx --test-reporter spec --test ./tests/*.spec.ts",
+    "test": "node --import tsx --test-reporter spec --test ./tests/**/*.spec.ts",
     "lint": "eslint . && npm run prettier:check",
     "build": "tsc",
     "prettier": "prettier . --write",
