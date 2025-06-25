@@ -54,9 +54,9 @@
     "powerReceivedTotal": 2424,
     "powerReturnedTotal": 0,
     "powerReceived": {
-      "l1": 0.682,
-      "l2": 0.75,
-      "l3": 0.992
+      "l1": 682,
+      "l2": 750,
+      "l3": 992
     },
     "powerReturned": {
       "l1": 0,
