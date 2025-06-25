@@ -276,27 +276,51 @@ export const CosemLibrary = new CosemLibraryInternal()
     result.electricity.current = result.electricity.current ?? {};
     result.electricity.current.l3 = valueNumber;
   })
-  .addNumberParser('1-*:21.7.0', ({ valueNumber, result }) => {
+  .addNumberParser('1-*:21.7.0', ({ valueNumber, result, unit }) => {
+    if (unit?.toLowerCase() === 'kw') {
+      valueNumber *= 1000;
+    }
+
     result.electricity.powerReceived = result.electricity.powerReceived ?? {};
     result.electricity.powerReceived.l1 = valueNumber;
   })
-  .addNumberParser('1-*:41.7.0', ({ valueNumber, result }) => {
+  .addNumberParser('1-*:41.7.0', ({ valueNumber, result, unit }) => {
+    if (unit?.toLowerCase() === 'kw') {
+      valueNumber *= 1000;
+    }
+
     result.electricity.powerReceived = result.electricity.powerReceived ?? {};
     result.electricity.powerReceived.l2 = valueNumber;
   })
-  .addNumberParser('1-*:61.7.0', ({ valueNumber, result }) => {
+  .addNumberParser('1-*:61.7.0', ({ valueNumber, result, unit }) => {
+    if (unit?.toLowerCase() === 'kw') {
+      valueNumber *= 1000;
+    }
+
     result.electricity.powerReceived = result.electricity.powerReceived ?? {};
     result.electricity.powerReceived.l3 = valueNumber;
   })
-  .addNumberParser('1-*:22.7.0', ({ valueNumber, result }) => {
+  .addNumberParser('1-*:22.7.0', ({ valueNumber, result, unit }) => {
+    if (unit?.toLowerCase() === 'kw') {
+      valueNumber *= 1000;
+    }
+
     result.electricity.powerReturned = result.electricity.powerReturned ?? {};
     result.electricity.powerReturned.l1 = valueNumber;
   })
-  .addNumberParser('1-*:42.7.0', ({ valueNumber, result }) => {
+  .addNumberParser('1-*:42.7.0', ({ valueNumber, result, unit }) => {
+    if (unit?.toLowerCase() === 'kw') {
+      valueNumber *= 1000;
+    }
+
     result.electricity.powerReturned = result.electricity.powerReturned ?? {};
     result.electricity.powerReturned.l2 = valueNumber;
   })
-  .addNumberParser('1-*:62.7.0', ({ valueNumber, result }) => {
+  .addNumberParser('1-*:62.7.0', ({ valueNumber, result, unit }) => {
+    if (unit?.toLowerCase() === 'kw') {
+      valueNumber *= 1000;
+    }
+
     result.electricity.powerReturned = result.electricity.powerReturned ?? {};
     result.electricity.powerReturned.l3 = valueNumber;
   })
