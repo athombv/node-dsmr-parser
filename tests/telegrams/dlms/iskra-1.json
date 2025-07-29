@@ -1,0 +1,50 @@
+{
+  "hdlc": {
+    "headers": [
+      {
+        "destinationAddress": 1,
+        "sourceAddress": 2,
+        "crc": {
+          "valid": true,
+          "value": 48599
+        }
+      }
+    ],
+    "footers": [
+      {
+        "crc": {
+          "valid": true,
+          "value": 18084
+        }
+      }
+    ]
+  },
+  "dlms": {
+    "invokeId": 0,
+    "timestamp": "",
+    "unknownObjects": [
+      "1-0:1.7.0(missing:uint32)",
+      "1-0:2.7.0(null)"
+    ],
+    "payloadType": "IskraList"
+  },
+  "cosem": {
+    "unknownObjects": [
+      "1-0:3.8.0(84281096)",
+      "1-0:4.8.0(4278190080)"
+    ],
+    "knownObjects": [
+      "1-0:1.8.0(287454020)",
+      "1-0:2.8.0(16909060)"
+    ]
+  },
+  "electricity": {
+    "total": {
+      "received": 287454020,
+      "returned": 16909060
+    }
+  },
+  "mBus": {},
+  "metadata": {},
+  "crcValid": true
+}

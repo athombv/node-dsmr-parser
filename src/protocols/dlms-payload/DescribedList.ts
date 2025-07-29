@@ -1,10 +1,13 @@
 import { getDlmsObisCode, isDlmsStructureLike } from '../dlms-datatype.js';
+import { isEqualObisCode, parseObisCodeFromString } from '../obis-code.js';
 import {
   addUnknownDlmsCosemObject,
   addUnknownDlmsObject,
   makeDlmsPayload,
   parseDlmsCosem,
 } from './dlms-payload.js';
+
+const descriptorListObisCode = parseObisCodeFromString('0-6:25.9.0.255').obisCode;
 
 export const DlmsPayloadDescribedList = makeDlmsPayload('DescribedList', {
   detector(dlms) {
@@ -33,6 +36,7 @@ export const DlmsPayloadDescribedList = makeDlmsPayload('DescribedList', {
 
     if (!isDlmsStructureLike(descriptorList)) return;
 
+    let nextValueIndex = 1;
     for (const [index, descriptor] of descriptorList.value.entries()) {
       if (!isDlmsStructureLike(descriptor)) {
         addUnknownDlmsObject(descriptor, result);
@@ -53,7 +57,16 @@ export const DlmsPayloadDescribedList = makeDlmsPayload('DescribedList', {
         continue;
       }
 
-      const valueRaw = dlms.value[index + 1];
+      // This item only indicates that this a descriptor list, so we skip it.
+      if (
+        index === 0 &&
+        descriptorListObisCode &&
+        isEqualObisCode(obisCode, descriptorListObisCode)
+      ) {
+        continue;
+      }
+
+      const valueRaw = dlms.value[nextValueIndex++];
 
       if (!valueRaw) {
         addUnknownDlmsCosemObject(obisCode, descriptor, result);
