@@ -1,0 +1,82 @@
+{
+  "hdlc": {
+    "headers": [
+      {
+        "destinationAddress": 103,
+        "sourceAddress": 145,
+        "crc": {
+          "valid": true,
+          "value": 51153
+        }
+      }
+    ],
+    "footers": [
+      {
+        "crc": {
+          "valid": true,
+          "value": 61545
+        }
+      }
+    ]
+  },
+  "dlms": {
+    "invokeId": 0,
+    "timestamp": "",
+    "unknownObjects": [],
+    "payloadType": "ECEList1"
+  },
+  "cosem": {
+    "unknownObjects": [
+      "1-0:3.7.0(0)",
+      "1-0:4.7.0(0)"
+    ],
+    "knownObjects": [
+      "0-0:42.0.0(49534b31303330373833383236333136)",
+      "0-0:96.1.2(49534b3833383236333136)",
+      "1-0:1.7.0(0)",
+      "1-0:2.7.0(0)",
+      "1-0:32.7.0(0)",
+      "1-0:52.7.0(0)",
+      "1-0:72.7.0(2346)",
+      "1-0:31.7.0(0)",
+      "1-0:51.7.0(0)",
+      "1-0:71.7.0(0)",
+      "1-0:21.7.0(0)",
+      "1-0:41.7.0(0)",
+      "1-0:61.7.0(0)",
+      "1-0:22.7.0(0)",
+      "1-0:42.7.0(0)",
+      "1-0:62.7.0(0)"
+    ],
+    "id": "ISK1030783826316"
+  },
+  "electricity": {
+    "powerReceivedTotal": 0,
+    "powerReturnedTotal": 0,
+    "voltage": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 234.6
+    },
+    "current": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 0
+    },
+    "powerReceived": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 0
+    },
+    "powerReturned": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 0
+    }
+  },
+  "mBus": {},
+  "metadata": {
+    "serialNumber": "ISK83826316"
+  },
+  "crcValid": true
+}

@@ -4,6 +4,8 @@ import { DlmsPayloadBasicList } from './BasicList.js';
 import { DlmsPayloadBasicStructure } from './BasicStructure.js';
 import { DlmsPayloadDescribedList } from './DescribedList.js';
 import type { makeDlmsPayload } from './dlms-payload.js';
+import { DlmsPayloadECEList1 } from './ECEList1.js';
+import { DlmsPayloadECEList2 } from './ECEList2.js';
 import { DlmsPayloadIskraList } from './IskraList.js';
 
 class DlmsPayloadsInternal {
@@ -30,4 +32,6 @@ export const DlmsPayloads = new DlmsPayloadsInternal()
   .addPayload(DlmsPayloadBasicList)
   .addPayload(DlmsPayloadBasicStructure)
   .addPayload(DlmsPayloadDescribedList)
-  .addPayload(DlmsPayloadIskraList);
+  .addPayload(DlmsPayloadIskraList)
+  .addPayload(DlmsPayloadECEList1)
+  .addPayload(DlmsPayloadECEList2);

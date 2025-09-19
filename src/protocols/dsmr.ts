@@ -44,6 +44,8 @@ export type DsmrParserResult = BaseParserResult & {
 const NumberTypeRegex = /^\(([\d.]+)?(\*\w+)?\)/;
 /** Parses a string like "(string)". */
 const StringTypeRegex = /^\(([^)]*)?\)/;
+/** Parses an octet string like "(01020304ABCDEF)". */
+const OctetStringTypeRegex = /^\(([\da-fA-F]+)?(\*\w+)?\)/;
 
 export const DSMR_SOF = 0x2f; // '/'
 export const CR = 0x0d; // '\r'
@@ -166,6 +168,24 @@ const decodeDsmrCosemLine = ({
           lines,
           lineNumber,
         },
+      });
+      return true;
+    }
+    case 'octet_string': {
+      const regexResult = OctetStringTypeRegex.exec(lineWithoutObisCode);
+
+      if (!regexResult) {
+        result.cosem.unknownObjects.push(line);
+        return false;
+      }
+      result.cosem.knownObjects.push(line);
+
+      const valueString = regexResult[1] ?? '';
+
+      parser.callback({
+        result,
+        obisCode,
+        valueBuffer: Buffer.from(valueString, 'hex'),
       });
       return true;
     }
