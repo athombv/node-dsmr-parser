@@ -16,6 +16,7 @@ export type DlmsDataTypes = {
   int32: number;
   enum: number;
   null: null;
+  missing: 'missing' | `missing:${string}`; // If set to a value, the value shows which data type was expected but not found.
 };
 
 export type ParsedDlmsData<TName extends keyof DlmsDataTypes = keyof DlmsDataTypes> = {
@@ -92,15 +93,20 @@ export function debugFriendlyDlmsDataType(object: ParsedDlmsData): NestedStrings
 class DlmsDataTypesInternal {
   parsers = new Map<
     number,
-    { name: keyof DlmsDataTypes; parse: DlmsDataTypeDecoder<DlmsDataTypes[keyof DlmsDataTypes]> }
+    {
+      name: keyof DlmsDataTypes;
+      parse: DlmsDataTypeDecoder<DlmsDataTypes[keyof DlmsDataTypes]>;
+      minSize: number;
+    }
   >();
 
   addDataType<TName extends keyof DlmsDataTypes>(
     name: TName,
     id: number,
+    minSize: number,
     parse: DlmsDataTypeDecoder<DlmsDataTypes[TName]>,
   ) {
-    this.parsers.set(id, { name, parse });
+    this.parsers.set(id, { name, parse, minSize });
     return this;
   }
 
@@ -109,7 +115,7 @@ class DlmsDataTypesInternal {
       return {
         value: null,
         index,
-        type: 'null',
+        type: 'missing',
       };
     }
 
@@ -117,12 +123,24 @@ class DlmsDataTypesInternal {
     const parser = this.parsers.get(dataType);
 
     if (!parser) {
-      throw new SmartMeterError(`Unknown data type 0x${dataType.toString(16)}`);
+      return {
+        value: null,
+        index,
+        type: 'missing',
+      };
+    }
+
+    if (index + parser.minSize > buffer.length) {
+      return {
+        value: `missing:${parser.name}`,
+        index,
+        type: 'missing',
+      };
     }
 
     const { value, index: newIndex } = parser.parse(index, buffer);
-    index = newIndex;
 
+    index = newIndex;
     return { value, index, type: parser.name };
   }
 }
@@ -158,9 +176,9 @@ const parseStructureOrArray = (index: number, buffer: Buffer) => {
  * @note There are more data types. But these are the ones used by smart meters.
  */
 export const DlmsDataTypes = new DlmsDataTypesInternal()
-  .addDataType('array', 0x01, parseStructureOrArray)
-  .addDataType('structure', 0x02, parseStructureOrArray)
-  .addDataType('octet_string', 0x09, (index, buffer) => {
+  .addDataType('array', 0x01, 1, parseStructureOrArray)
+  .addDataType('structure', 0x02, 1, parseStructureOrArray)
+  .addDataType('octet_string', 0x09, 1, (index, buffer) => {
     const { objectCount, newIndex } = getDlmsObjectCount(buffer, index);
     index = newIndex;
     const value = buffer.subarray(index, index + objectCount);
@@ -170,7 +188,7 @@ export const DlmsDataTypes = new DlmsDataTypesInternal()
       value,
     };
   })
-  .addDataType('string', 0x0a, (index, buffer) => {
+  .addDataType('string', 0x0a, 1, (index, buffer) => {
     const { objectCount, newIndex } = getDlmsObjectCount(buffer, index);
     index = newIndex;
 
@@ -181,14 +199,14 @@ export const DlmsDataTypes = new DlmsDataTypesInternal()
       value,
     };
   })
-  .addDataType('uint8', 0x11, (index, buffer) => {
+  .addDataType('uint8', 0x11, 1, (index, buffer) => {
     const value = buffer.readUint8(index++);
     return {
       index,
       value,
     };
   })
-  .addDataType('uint16', 0x12, (index, buffer) => {
+  .addDataType('uint16', 0x12, 2, (index, buffer) => {
     const value = buffer.readUint16BE(index);
     index += 2;
     return {
@@ -196,7 +214,7 @@ export const DlmsDataTypes = new DlmsDataTypesInternal()
       value,
     };
   })
-  .addDataType('uint32', 0x06, (index, buffer) => {
+  .addDataType('uint32', 0x06, 4, (index, buffer) => {
     const value = buffer.readUint32BE(index);
     index += 4;
     return {
@@ -204,7 +222,7 @@ export const DlmsDataTypes = new DlmsDataTypesInternal()
       value,
     };
   })
-  .addDataType('int8', 0x0f, (index, buffer) => {
+  .addDataType('int8', 0x0f, 1, (index, buffer) => {
     const value = buffer.readInt8(index);
     index += 1;
     return {
@@ -212,7 +230,7 @@ export const DlmsDataTypes = new DlmsDataTypesInternal()
       value,
     };
   })
-  .addDataType('int16', 0x10, (index, buffer) => {
+  .addDataType('int16', 0x10, 2, (index, buffer) => {
     const value = buffer.readInt16BE(index);
     index += 2;
     return {
@@ -220,7 +238,7 @@ export const DlmsDataTypes = new DlmsDataTypesInternal()
       value,
     };
   })
-  .addDataType('int32', 0x05, (index, buffer) => {
+  .addDataType('int32', 0x05, 4, (index, buffer) => {
     const value = buffer.readInt32BE(index);
     index += 4;
     return {
@@ -228,7 +246,7 @@ export const DlmsDataTypes = new DlmsDataTypesInternal()
       value,
     };
   })
-  .addDataType('enum', 0x16, (index, buffer) => {
+  .addDataType('enum', 0x16, 1, (index, buffer) => {
     const value = buffer.readUint8(index++);
     return {
       value,

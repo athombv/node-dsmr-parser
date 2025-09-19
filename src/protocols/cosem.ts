@@ -238,15 +238,28 @@ export const CosemLibrary = new CosemLibraryInternal()
   .addNumberParser('0-0:96.13.1', ({ valueNumber, result }) => {
     result.metadata.numericMessage = valueNumber;
   })
-  .addNumberParser('1-*:32.7.0', ({ valueNumber, result }) => {
+  .addNumberParser('1-*:32.7.0', ({ valueNumber, result, dlms }) => {
+    // The currents for DLMS (in BasicList/DescribedList) mode are in dV to
+    // give more precision without using floats.
+    if (dlms?.useDefaultScalar) {
+      valueNumber /= 10;
+    }
+
     result.electricity.voltage = result.electricity.voltage ?? {};
     result.electricity.voltage.l1 = valueNumber;
   })
-  .addNumberParser('1-*:52.7.0', ({ valueNumber, result }) => {
+  .addNumberParser('1-*:52.7.0', ({ valueNumber, result, dlms }) => {
+    if (dlms?.useDefaultScalar) {
+      valueNumber /= 10;
+    }
     result.electricity.voltage = result.electricity.voltage ?? {};
     result.electricity.voltage.l2 = valueNumber;
   })
-  .addNumberParser('1-*:72.7.0', ({ valueNumber, result }) => {
+  .addNumberParser('1-*:72.7.0', ({ valueNumber, result, dlms }) => {
+    if (dlms?.useDefaultScalar) {
+      valueNumber /= 10;
+    }
+
     result.electricity.voltage = result.electricity.voltage ?? {};
     result.electricity.voltage.l3 = valueNumber;
   })
