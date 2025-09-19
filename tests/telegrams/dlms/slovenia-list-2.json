@@ -1,0 +1,67 @@
+{
+  "hdlc": {
+    "headers": [
+      {
+        "destinationAddress": 103,
+        "sourceAddress": 145,
+        "crc": {
+          "valid": true,
+          "value": 56555
+        }
+      }
+    ],
+    "footers": [
+      {
+        "crc": {
+          "valid": true,
+          "value": 45312
+        }
+      }
+    ]
+  },
+  "dlms": {
+    "invokeId": 0,
+    "timestamp": "",
+    "unknownObjects": [],
+    "payloadType": "ECEList2"
+  },
+  "cosem": {
+    "unknownObjects": [
+      "0-0:96.1.3()",
+      "0-0:96.3.10(1)",
+      "1-0:3.8.0(4531)",
+      "1-0:4.8.0(0)"
+    ],
+    "knownObjects": [
+      "0-0:42.0.0(49534b31303330373833383236333136)",
+      "0-0:96.14.0(2)",
+      "1-0:1.8.0(3810)",
+      "1-0:1.8.1(0)",
+      "1-0:1.8.2(3810)",
+      "1-0:2.8.0(0)",
+      "1-0:2.8.1(0)",
+      "1-0:2.8.2(0)"
+    ],
+    "id": "ISK1030783826316"
+  },
+  "electricity": {
+    "currentTariff": 2,
+    "total": {
+      "received": 3810,
+      "returned": 0
+    },
+    "tariffs": {
+      "1": {
+        "received": 0,
+        "returned": 0
+      },
+      "2": {
+        "received": 3810,
+        "returned": 0
+      }
+    }
+  },
+  "mBus": {},
+  "metadata": {},
+  "crcValid": true
+}

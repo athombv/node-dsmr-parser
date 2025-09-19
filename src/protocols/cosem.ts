@@ -13,7 +13,7 @@ import {
   parseObisCodeWithWildcards,
 } from './obis-code.js';
 
-type ParameterTypes = 'number' | 'string' | 'raw';
+type ParameterTypes = 'number' | 'string' | 'raw' | 'octet_string';
 
 export type DlmsCosemParameters = {
   useDefaultScalar?: boolean;
@@ -48,13 +48,19 @@ type CallbackRaw = BaseCallback<{
   valueString: string;
 }>;
 
+type CallbackOctetString = BaseCallback<{
+  valueBuffer: Buffer;
+}>;
+
 type Callback<T extends ParameterTypes> = T extends 'number'
   ? CallbackNumber
   : T extends 'string'
     ? CallbackString
     : T extends 'raw'
       ? CallbackRaw
-      : never;
+      : T extends 'octet_string'
+        ? CallbackOctetString
+        : never;
 
 class CosemLibraryInternal {
   lib: (
@@ -72,6 +78,11 @@ class CosemLibraryInternal {
         obisCode: ObisCodeWildcard;
         parameterType: 'raw';
         callback: Callback<'raw'>;
+      }
+    | {
+        obisCode: ObisCodeWildcard;
+        parameterType: 'octet_string';
+        callback: Callback<'octet_string'>;
       }
   )[] = [];
 
@@ -113,6 +124,20 @@ class CosemLibraryInternal {
     return this;
   }
 
+  addOctetStringParser(identifier: ObisCodeString, callback: CallbackOctetString) {
+    const { obisCode } = parseObisCodeWithWildcards(identifier);
+
+    if (!obisCode) throw new Error(`Invalid OBIS identifier: ${identifier}`);
+
+    this.lib.push({
+      parameterType: 'octet_string',
+      obisCode,
+      callback,
+    });
+
+    return this;
+  }
+
   getParser(obisCode: ObisCode) {
     return this.lib.find((item) => isEqualObisCode(item.obisCode, obisCode));
   }
@@ -142,8 +167,14 @@ export const CosemLibrary = new CosemLibraryInternal()
   .addStringParser('0-0:1.0.0', ({ valueString, result }) => {
     result.metadata.timestamp = parseTimeStamp(valueString);
   })
+  .addOctetStringParser('0-0:42.0.0', ({ valueBuffer, result }) => {
+    result.cosem.id = valueBuffer.toString('utf-8');
+  })
   .addStringParser('0-0:96.1.1', ({ valueString, result }) => {
     result.metadata.equipmentId = valueString;
+  })
+  .addOctetStringParser('0-0:96.1.2', ({ valueBuffer, result }) => {
+    result.metadata.serialNumber = valueBuffer.toString('utf-8');
   })
   .addNumberParser('1-*:1.8.*', ({ valueNumber, unit, obisCode, result }) => {
     const tariff = obisCode.processing;

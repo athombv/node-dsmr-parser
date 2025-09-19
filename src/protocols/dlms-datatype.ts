@@ -16,6 +16,7 @@ export type DlmsDataTypes = {
   int32: number;
   enum: number;
   null: null;
+  boolean: number;
   missing: 'missing' | `missing:${string}`; // If set to a value, the value shows which data type was expected but not found.
 };
 
@@ -247,6 +248,13 @@ export const DlmsDataTypes = new DlmsDataTypesInternal()
     };
   })
   .addDataType('enum', 0x16, 1, (index, buffer) => {
+    const value = buffer.readUint8(index++);
+    return {
+      value,
+      index,
+    };
+  })
+  .addDataType('boolean', 0x03, 1, (index, buffer) => {
     const value = buffer.readUint8(index++);
     return {
       value,
