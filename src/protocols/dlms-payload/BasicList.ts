@@ -56,7 +56,6 @@ export const DlmsPayloadBasicList = makeDlmsPayload('BasicList', {
         continue;
       }
 
-
       parseDlmsCosem({
         result,
         obisCode,
