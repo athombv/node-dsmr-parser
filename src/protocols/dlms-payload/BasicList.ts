@@ -56,11 +56,6 @@ export const DlmsPayloadBasicList = makeDlmsPayload('BasicList', {
         continue;
       }
 
-      if (typeof valueRaw.value !== 'string' && typeof valueRaw.value !== 'number') {
-        addUnknownDlmsObject(valueRaw, result);
-        continue;
-      }
-
       parseDlmsCosem({
         result,
         obisCode,

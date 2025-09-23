@@ -22,15 +22,14 @@
   "dlms": {
     "invokeId": 0,
     "timestamp": "",
-    "unknownObjects": [
-      "octet_string: 07e1081003100005ff800000"
-    ],
+    "unknownObjects": [],
     "payloadType": "BasicList"
   },
   "cosem": {
     "unknownObjects": [
       "1-1:0.0.5(5706567000000000)",
-      "1-1:96.1.1(000000000000000000)"
+      "1-1:96.1.1(000000000000000000)",
+      "0-1:1.0.0(07e1081003100005ff800000)"
     ],
     "knownObjects": [
       "1-1:1.7.0(0)",
