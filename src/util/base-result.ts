@@ -1,5 +1,6 @@
 export type BaseParserResult = {
   cosem: {
+    id?: string;
     knownObjects: string[];
     unknownObjects: string[];
   };
@@ -7,6 +8,7 @@ export type BaseParserResult = {
     dsmrVersion?: number;
     timestamp?: Date | string;
     equipmentId?: string;
+    serialNumber?: string;
     events?: {
       powerFailures?: number;
       longPowerFailures?: number;

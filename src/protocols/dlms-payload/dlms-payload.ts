@@ -36,7 +36,7 @@ export const parseDlmsCosem = ({
   result,
 }: {
   obisCode: ObisCode;
-  value: string | number;
+  value: unknown;
   unit: string | null;
   dlms: DlmsCosemParameters;
   result: HdlcParserResult;
@@ -44,7 +44,7 @@ export const parseDlmsCosem = ({
   const parser = CosemLibrary.getParser(obisCode);
 
   const obisCodeString = obisCodeToString(obisCode);
-  const valueStr = `${value}${unit ? `*${unit}` : ''}`;
+  const valueStr = `${Buffer.isBuffer(value) ? value.toString('hex') : String(value)}${unit ? `*${unit}` : ''}`;
   const cosemStr = `${obisCodeString}(${valueStr})`;
 
   if (!parser) {
@@ -99,6 +99,21 @@ export const parseDlmsCosem = ({
         valueString: String(value),
       });
 
+      result.cosem.knownObjects.push(cosemStr);
+      break;
+    }
+    case 'octet_string': {
+      if (!Buffer.isBuffer(value) && typeof value !== 'string') {
+        result.cosem.unknownObjects.push(cosemStr);
+        return;
+      }
+
+      parser.callback({
+        result,
+        obisCode,
+        dlms,
+        valueBuffer: Buffer.isBuffer(value) ? value : Buffer.from(value, 'utf-8'),
+      });
       result.cosem.knownObjects.push(cosemStr);
       break;
     }
