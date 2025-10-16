@@ -83,7 +83,7 @@ const serialPort = new SerialPort(
 const parser = (() => {
   if (MODE === 'dsmr' && !DECRYPTION_KEY) {
     return new UnencryptedDSMRStreamParser({
-      stream,
+      stream: serialPort,
       detectEncryption: true,
       callback: (error, result) => {
         if (error) {
@@ -98,7 +98,7 @@ const parser = (() => {
 
   if (MODE === 'dsmr' && DECRYPTION_KEY) {
     return new EncryptedDSMRStreamParser({
-      stream,
+      stream: serialPort,
       decryptionKey: DECRYPTION_KEY,
       callback: (error, result) => {
         if (error) {
@@ -112,7 +112,7 @@ const parser = (() => {
   }
 
   return new DlmsStreamParser({
-    stream,
+    stream: serialPort,
     decryptionKey: DECRYPTION_KEY,
     callback: (error, result) => {
       if (error) {
