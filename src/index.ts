@@ -1,4 +1,4 @@
-import { getMbusDevice, MBUS_DEVICE_IDS } from './util/mbus.js';
+import { getMbusDevice, getMbusDevices, MBUS_DEVICE_IDS } from './util/mbus.js';
 import { ENCRYPTED_DLMS_DEFAULT_AAD } from './protocols/encryption.js';
 import { DsmrParserResult } from './protocols/dsmr.js';
 import { HdlcParserResult } from './protocols/hdlc.js';
@@ -10,6 +10,7 @@ export * from './util/errors.js';
 export const DSMR = {
   MBUS_DEVICE_IDS,
   getMbusDevice,
+  getMbusDevices,
   ENCRYPTION_DEFAULT_AAD: ENCRYPTED_DLMS_DEFAULT_AAD,
 } as const;
 
